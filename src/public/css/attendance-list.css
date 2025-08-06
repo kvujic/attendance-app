@@ -1,0 +1,121 @@
+body {
+    background-color: #f0eff2;
+    margin: 0;
+    padding: 0;
+}
+
+.attendance-list__container {
+    width: 60%;
+    margin: 80px auto;
+}
+
+.attendance-list__title {
+    font-size: 30px;
+    border-left: solid 8px #000;
+    padding-left: 20px;
+    height: 40px;
+}
+
+.month-switcher {
+    background-color: #fff;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 30px;
+    width: 100%;
+    margin: 50px auto;
+}
+
+.nav-button {
+    color: #737373;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    background-color: transparent;
+}
+
+.button-arrow {
+    margin: 0 10px;
+}
+
+.month-display {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.calendar-icon {
+    margin-right: 10px;
+    width: 25px;
+    height: 25px;
+}
+
+.attendance-list__table {
+    width: 100%;;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 10px;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.attendance-list__table-header {
+    border-bottom: solid 3px #e1e1e1;
+}
+
+.attendance-list__table-body  {
+    border-bottom: solid 1px #e1e1e1;
+}
+
+.attendance-list__table-row {
+    height: 50px;
+}
+
+.list-title,
+.list-data {
+    width: 16.66%;
+    text-align: center;
+    font-weight: bold;
+    color: #737373;
+    letter-spacing: 15%;
+}
+
+.list-title:first-child {
+    text-align: left;
+    padding-left: 50px;
+}
+
+.list-data__days {
+    padding-left: 30px;
+}
+
+.row-body {
+    border-bottom: solid 2px #e1e1e1;
+}
+
+.row-body:last-child {
+    border-bottom: none;
+}
+
+.list-data__detail-link {
+    text-decoration: none;
+    color: #000;
+}
+
+@media (min-width: 768px) and (max-width: 850px) {
+    .attendance-list__container {
+        width: 80%;
+    }
+    .month-switcher {
+        width: 100%;
+    }
+    .attendance-list__table {
+        width: 100%;
+    }
+    .list-title:first-child {
+        padding-left: 20px;
+    }
+    .list-data__days {
+        padding-left: 18px;
+    }
+}

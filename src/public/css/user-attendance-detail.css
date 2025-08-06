@@ -1,0 +1,135 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #f0eff2;
+}
+
+.attendance-detail__container {
+    width: 60%;
+    margin: 80px auto;
+}
+
+.attendance-detail__title {
+    font-size: 38px;
+    border-left: solid 8px #000;
+    padding-left: 20px;
+}
+
+.attendance-detail__table {
+    background-color: #fff;
+    border-radius: 10px;
+    width: 100%;
+    margin: 40px auto 30px;
+    text-align: left;
+}
+
+.attendance-detail__table-row {
+    height: 90px;
+    border-bottom: solid 2px #e1e1e1;
+}
+
+.textarea {
+    height: 120px;
+}
+
+.detail-label {
+    font-weight: bold;
+    color: #737373;
+    width: 40%;
+    padding-left: 70px;
+}
+
+.detail-data {
+    font-weight: bold;
+    margin-left: 20px;
+}
+
+.data__year {
+    margin-left: 20px;
+}
+
+.data__month-date {
+    margin-left: 140px;
+}
+
+.data__input-time {
+    padding: 8px 10px;
+    font-size: 16px;
+    font-weight: bold;
+    border: solid 1px #e1e1e1;
+    border-radius: 4px;
+    width: 100px;
+    text-align: center;
+    letter-spacing: 15%;
+}
+
+.tilde {
+    padding: 0 40px;
+}
+
+.data-name {
+    padding-left: 20px;
+}
+
+.detail-data__text {
+    border: solid 1px #e1e1e1;
+    width: 320px;
+    height: 80px;
+    padding: 5px 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.attendance-detail__action {
+    width: 100%;
+    display: flex;
+    justify-content: right;
+}
+
+.action-button {
+    background-color: #000;
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 6px 40px;
+    border-radius: 5px;
+}
+
+.action-button:hover {
+    opacity: 0.7;
+}
+
+.pending-message {
+    color: #ff0000;
+}
+
+.attendance-detail__error {
+    color: #dc3545;
+    font-weight: normal;
+}
+
+@media (min-width: 768px) and (max-width: 850px) {
+    .attendance-detail__container {
+        width: 70%;
+    }
+    .attendance-detail__table {
+        width: 100%;
+    }
+    .detail-label {
+        padding-left: 40px;
+        width: 35%;
+    }
+    .detail-data {
+        margin-left: 0;
+    }
+    .data__month-date {
+        margin-left: 100px;
+    }
+    .tilde {
+        padding: 0 30px;
+    }
+    .detail-data__text {
+        width: 280px;
+    }
+}
