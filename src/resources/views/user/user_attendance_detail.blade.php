@@ -12,11 +12,11 @@
 
 <div class="attendance-detail__container">
     <h1 class="attendance-detail__title">勤怠詳細</h1>
-    <form action="{{ route('attendance.update', $attendance->id) }}" method="POST">
+    <form action="{{ route('attendance.update', ['id' => $id]) }}" method="POST">
         @method('PUT')
         @csrf
         <table class="attendance-detail__table">
-            <tbody>
+            <tbody id="break-rows">
                 <tr class="attendance-detail__table-row">
                     <th class="detail-label">名前</th>
                     <td class="detail-data data-name">{{ $user->name }} </td>
@@ -24,45 +24,52 @@
                 <tr class="attendance-detail__table-row">
                     <th class="detail-label">日付</th>
                     <td class="detail-data">
-                        <span class="data__year">{{ \Carbon\Carbon::parse($attendance->date)->format('Y年') }}</span>
-                        <span class="data__month-date">{{ \Carbon\Carbon::parse($attendance->date)->format('n月j日') }}</span>
+                        <input type="text" class="data__input-date year" value="{{ \Carbon\Carbon::parse($attendance->date)->format('Y年') }}" readonly>
+                        <input type="text" class="data__input-date month-date" value="{{ \Carbon\Carbon::parse($attendance->date)->format('n月j日') }}" readonly>
+                        <input type="hidden" name="date" value="{{ \Carbon\Carbon::parse($attendance->date)->format('Y-m-d') }}">
                     </td>
                 </tr>
                 <tr class="attendance-detail__table-row">
                     <th class="detail-label">出勤・退勤</th>
                     <td class="detail-data">
-                        <input type="text" class="data__input-time" name="clock_in" value="{{ \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') }}" {{ $isPending ? 'disabled' : '' }}>
+                        <input type="text" class="data__input-time" name="requested_clock_in" value="{{ $requestedClockIn }}" {{ $isPending ? 'readonly' : '' }}>
                         <span class="tilde">〜</span>
-                        <input type="text" class="data__input-time" name="clock_out" value="{{ \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') }}" {{ $isPending ? 'disabled' : ''}}>
-                        @error('clock_in')
+                        <input type="text" class="data__input-time" name="requested_clock_out" value="{{ $requestedClockOut }}" {{ $isPending ? 'readonly' : ''}}>
+                        @error('requested_clock_in')
                         <div class="attendance-detail__error">{{ $message }}</div>
                         @enderror
-                        @error('clock_out')
+                        @error('requested_clock_out')
                         <div class="attendance-detail__error">{{ $message }}</div>
                         @enderror
                     </td>
                 </tr>
 
-                @foreach ($breaks as $i => $break)
+                @foreach ($breaks as $break)
                 <tr class="attendance-detail__table-row break-row">
-                    <th class="detail-label">{{ $i === 0 ? '休憩' : '休憩' . ($i + 1) }}</th>
+                    <th class="detail-label">{{ $loop->index === 0 ? '休憩' : '休憩' . ($loop->index + 1) }}</th>
                     <td class="detail-data">
-                        <input type="text" class="data__input-time" name="breaks[{{ $i }}][start]" value="{{ old("breaks.{$i}.start", $break['start']) }}" {{ $isPending ? 'disabled' : ''}} oninput="maybeAddRow({{ $i }})">
+                        <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_start]" value="{{ old('breaks.'.$loop->index.'.requested_break_start', data_get($break, 'requested_break_start', '')) }}" {{ $isPending ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
+
                         <span class="tilde">〜</span>
-                        <input type="text" class="data__input-time" name="breaks[{{ $i }}][end]" value="{{ old("breaks.{$i}.end", $break['end']) }}" {{ $isPending ? 'disabled' : ''}} oninput="maybeAddRow({{ $i }})">
-                        @error('breaks.*.start')
-                        <div class="attendance-detail__error">{{ $message }}</div>
-                        @enderror
-                        @error('breaks.*.end')
-                        <div class="attendance-detail__error">{{ $message }}</div>
-                        @enderror
+
+                        <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_end]" value="{{ old('breaks.'.$loop->index.'.requested_break_end', data_get($break, 'requested_break_end', '')) }}" {{ $isPending ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
+
+                        @if ($errors->has('breaks.'.$loop->index.'.requested_break_end'))
+                        <div class="attendance-detail__error">
+                            {{ $errors->first('breaks.'.$loop->index.'.requested_break_end') }}
+                        </div>
+                        @elseif ($errors->has('breaks.'.$loop->index.'.requested_break_start'))
+                        <div class="attendance-detail__error">
+                            {{ $errors->first('breaks.'.$loop->index.'.requested_break_start' )}}
+                        </div>
+                        @endif
                     </td>
                 </tr>
                 @endforeach
                 <tr class="attendance-detail__table-row textarea">
                     <th class="detail-label">備考</th>
                     <td class="detail-data">
-                        <textarea name="note" id="" class="detail-data__text" cols="15" rows="3" {{ $isPending ? 'disabled' : ''}}>{{ old('note',$attendance->note) }}</textarea>
+                        <textarea name="note" id="" class="detail-data__text" cols="15" rows="3" {{ $isPending ? 'readonly' : ''}}>{{ old('note',$correction->note ?? $attendance->note) }}</textarea>
                         @error('note')
                         <div class="attendance-detail__error">{{ $message }}</div>
                         @enderror
@@ -84,11 +91,8 @@
 
 @section('scripts')
 <script>
-    window.breakIndex = {
-        {
-            $breakCount
-        }
-    };
+    window.isPending = @json($isPending);
+    window.breakIndex = @json(max(1, $breakCount));
 </script>
 <script src="{{ asset('js/attendance-detail.js') }}"></script>
 @endsection

@@ -12,8 +12,8 @@ class AttendanceCorrection extends Model
     protected $fillable = [
         'user_id',
         'attendance_id',
-        'requested_start_time',
-        'requested_end_time',
+        'requested_clock_in',
+        'requested_clock_out',
         'note',
         'status',
     ];
@@ -33,7 +33,7 @@ class AttendanceCorrection extends Model
     }
 
     public function correctionBreaks() {
-        return $this->hasMany(CorrectionBreak::class);
+        return $this->hasMany(CorrectionBreak::class)->orderBy('requested_break_start');
     }
 
     public function getStatusLabelAttribute()

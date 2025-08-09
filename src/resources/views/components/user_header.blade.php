@@ -19,7 +19,7 @@
             @if($currentPath === 'attendance' && isset($attendanceStatus) && $attendanceStatus === 'after_work')
             {{--nav for after work--}}
             <li class=nav-item><a href="{{ route('attendance.list') }}" class="nav-link">今月の出勤一覧</a></li>
-            <li class="nav-item"><a href="{{ route('stamp_correction_request.list') }}" class="nav-link">申請一覧</a></li>
+            <li class="nav-item"><a href="{{ route('stamp_correction_request.index') }}" class="nav-link">申請一覧</a></li>
             @else
             {{--nav for default--}}
             <li class="nav-item"><a href="{{ route('attendance.create') }}" class="nav-link">勤怠</a></li>

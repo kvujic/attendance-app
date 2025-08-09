@@ -44,12 +44,17 @@ body {
     margin-left: 20px;
 }
 
-.data__year {
-    margin-left: 20px;
+.data__input-date {
+    border: none;
+    font-weight: bold;
+    padding: 8px 10px;
+    font-size: 16px;
+    text-align: center;
+    width: 100px;
 }
 
-.data__month-date {
-    margin-left: 140px;
+.month-date {
+    margin-left: 100px;
 }
 
 .data__input-time {

@@ -16,7 +16,7 @@ class EmailVerificationController extends Controller
     public function verify(EmailVerificationRequest $request) {
         $request->fulfill();
         Auth::login($request->user());
-        return redirect()->route('attendance');
+        return redirect()->route('attendance.create');
     }
 
     public function resend(Request $request) {

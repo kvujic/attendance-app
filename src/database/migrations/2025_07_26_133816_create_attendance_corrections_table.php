@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('attendance_corrections', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id');
-            $table->foreignId('attendance_id');
-            $table->dateTime('requested_start_time')->nullable();
-            $table->dateTime('requested_end_time')->nullable();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('attendance_id')->nullable()->constrained()->nullOnDelete90;
+            $table->dateTime('requested_clock_in')->nullable();
+            $table->dateTime('requested_clock_out')->nullable();
             $table->text('note');
             $table->enum('status', ['pending', 'approved'])->default('pending');
             $table->timestamps();
