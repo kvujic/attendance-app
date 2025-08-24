@@ -85,8 +85,6 @@ Route::middleware(['auth:admin', 'admin'])->group(function () {
     Route::patch('/stamp_correction_request/approve/{correction}', [AdminCorrectionController::class, 'approve'])->name('stamp_correction_request.approve');
 });
 
-
-
 Route::get('/stamp_correction_request/list', [\App\Http\Controllers\User\CorrectionController::class, 'index'])
     ->middleware(['auth:admin,web', \App\Http\Middleware\AdminCorrectionListMiddleware::class, 'verified'])
     ->name('stamp_correction_request.index');
