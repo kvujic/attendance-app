@@ -91,3 +91,55 @@ MAIL_FROM_NAME="${APP_NAME}"
 2. ブラウザでアクセス  
    http://localhost:8025
    > 会員登録後に表示されるページ内の「認証はこちらから」をクリックすると上記 URL にアクセスできます
+
+
+### 単体テスト環境構築
+
+1. `docker-compose exec php bash`
+2. 「.env」ファイルから「.env.testing」を作成
+
+```bash
+cp .env .env.testing
+```
+
+3. .env.testing の以下の環境変数を変更
+
+```text
+APP_ENV=test
+
+DB_CONNECTION=mysql
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=test_db
+DB_USERNAME=root
+DB_PASSWORD=root
+```
+
+4. テスト用データベースの作成
+
+```bash
+docker-compose exec mysql bash
+mysql -u root -p
+```
+
+> パスワードは docker-compose.yml の MYSQL_ROOT_PASSWORD に設定されているものを入力してください
+
+```sql
+CREATE DATABASE test_db;
+SHOW DATABASES;
+```
+
+5. テストの実行
+
+```bash
+docker-compose exec php bash
+php artisan test
+```
+
+特定のテストクラスだけを実行したい場合：
+
+```bash
+php artisan test --filter=テストファイル名
+```
+
+> 各テストクラスで use refresh database; を使用しているため、テストごとに自動でマイグレーションが実行されます
