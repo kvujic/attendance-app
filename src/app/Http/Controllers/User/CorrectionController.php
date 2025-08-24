@@ -7,8 +7,8 @@ use App\Http\Requests\AttendanceRequest;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrection;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class CorrectionController extends Controller
@@ -16,34 +16,21 @@ class CorrectionController extends Controller
 
     public function update(AttendanceRequest $request, $id)
     {
-        \Log::debug('update() 入った', ['id' => $id, 'request' => $request->all()]);
+        $validated = $request->validated();
 
         if ($id !== 'new') {
             $attendance = Attendance::where('id', $id)
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
 
-            $targetDate = Carbon::parse($attendance->date)->toDateString();
-
             if (Carbon::parse($attendance->date)->isFuture()) {
                 return back()->withErrors([
                     'date' => '未来日の勤怠は修正できません',
                 ])->withInput();
             }
+            $targetDate = Carbon::parse($attendance->date)->toDateString();
         } else {
-            // apply after create dummy
-            if (!$request->filled('date')) {
-                return back()->withErrors([
-                    'date' => '日付は必須です',
-                ])->withInput();
-            }
             $targetDate = Carbon::parse($request->date)->toDateString();
-
-            if (Carbon::parse($targetDate)->isFuture()) {
-                return back()->withErrors([
-                    'date' => '未来日の勤怠は修正できません',
-                ])->withInput();
-            }
 
             // user_id + date = unique(?)
             $attendance = Attendance::firstOrCreate(
@@ -54,11 +41,13 @@ class CorrectionController extends Controller
 
         //transaction
         \DB::transaction(function () use ($request, $attendance) {
+            $workDate = Carbon::parse($attendance->date)->toDateString();
+
             $reqIn = $request->filled('requested_clock_in')
-                ? Carbon::parse($request->requested_clock_in)->format('H:i')
+                ? Carbon::parse($workDate . ' ' . $request->requested_clock_in)->format('Y-m-d H:i:s')
                 : null;
             $reqOut = $request->filled('requested_clock_out')
-                ? Carbon::parse($request->requested_clock_out)->format('H:i')
+                ? Carbon::parse($workDate . ' ' . $request->requested_clock_out)->format('Y-m-d H:i:s')
                 : null;
 
             $correction = AttendanceCorrection::create([
@@ -66,7 +55,7 @@ class CorrectionController extends Controller
                 'attendance_id' => $attendance->id,
                 'requested_clock_in' => $reqIn,
                 'requested_clock_out' => $reqOut,
-                'note' => $request->note,
+                'request_note' => $request->request_note,
                 'status' => 'pending',
             ]);
 
@@ -74,31 +63,13 @@ class CorrectionController extends Controller
                 $s = $b['requested_break_start'] ?? null;
                 $e = $b['requested_break_end'] ?? null;
                 if ($s && $e) {
-                    $correction->correctionBreak()->create([
-                        'requested_break_start' => Carbon::parse($s)->format('H:i'),
-                        'requested_break_end' => Carbon::parse($e)->format('H:i'),
+                    $correction->correctionBreaks()->create([
+                        'requested_break_start' => Carbon::parse($workDate . ' ' . $s)->format('Y-m-d H:i:s'),
+                        'requested_break_end' => Carbon::parse($workDate . ' ' . $e)->format('Y-m-d H:i:s'),
                     ]);
                 }
             }
         });
-
-
-        /*
-
-        \Log::debug('correction 作成', ['id' => $correction->id ?? '失敗']);
-
-        if ($request->has('breaks')) {
-            foreach ($request->breaks as $break) {
-                if (!empty($break['requested_break_start']) && !empty($break['requested_break_end'])) {
-                    \Log::debug('break 登録開始', $break);
-                    $correction->correctionBreaks()->create([
-                        'requested_break_start' => $break['requested_break_start'] ?? null,
-                        'requested_break_end' => $break['requested_break_end'] ?? null,
-                    ]);
-                }
-            }
-        }
-            */
 
         return redirect()->route('attendance.show', ['id' => 'new', 'date' => $targetDate]);
     }
@@ -129,3 +100,4 @@ class CorrectionController extends Controller
     }
 
 }
+

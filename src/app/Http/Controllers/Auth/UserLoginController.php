@@ -7,6 +7,7 @@ use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class UserLoginController extends Controller
 {
@@ -14,7 +15,12 @@ class UserLoginController extends Controller
         return view('auth.user_login');
     }
 
-    public function login(LoginRequest $request) {
+    public function login(LoginRequest $request)
+    {
+        Auth::guard('admin')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         $credentials = $request->validated();
 
         $user = User::where('email', $credentials['email'])->first();
@@ -32,6 +38,15 @@ class UserLoginController extends Controller
         }
 
         return redirect()->intended('/attendance');
+    }
+
+    public function logout(Request $request)
+    {
+        Auth::guard('web')->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login');
     }
 }
 

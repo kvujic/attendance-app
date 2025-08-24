@@ -12,11 +12,11 @@
     @if(!$isAuthPage)
     <nav class="header__nav">
         <ul class="nav-menu">
-            <li class="nav-item"><a href="{{ route('admin.attendances') }}" class="nav-link">勤怠一覧</a></li>
-            <li class="nav-item"><a href="{{ route('admin.users') }}" class="nav-link">スタッフ一覧</a></li>
-            <li class="nav-item"><a href="{{ route('admin.requests">申請一覧</a></li>
+            <li class="nav-item"><a href="{{ route('admin.attendance.list') }}" class="nav-link">勤怠一覧</a></li>
+            <li class="nav-item"><a href="{{ route('admin.staff.list') }}" class="nav-link">スタッフ一覧</a></li>
+            <li class="nav-item"><a href="{{ route('stamp_correction_request.index') }}" class="nav-link">申請一覧</a></li>
             <li class="nav-item">
-                <form action="/logout" method="POST">
+                <form action="{{ route('admin.logout') }}" class="nav-item__form" method="POST">
                     @csrf
                     <button class="button__logout" type="submit">ログアウト</button>
                 </form>

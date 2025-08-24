@@ -13,7 +13,6 @@
 <div class="attendance-detail__container">
     <h1 class="attendance-detail__title">勤怠詳細</h1>
     <form action="{{ route('attendance.update', ['id' => $id]) }}" method="POST">
-        @method('PUT')
         @csrf
         <table class="attendance-detail__table">
             <tbody id="break-rows">
@@ -27,6 +26,9 @@
                         <input type="text" class="data__input-date year" value="{{ \Carbon\Carbon::parse($attendance->date)->format('Y年') }}" readonly>
                         <input type="text" class="data__input-date month-date" value="{{ \Carbon\Carbon::parse($attendance->date)->format('n月j日') }}" readonly>
                         <input type="hidden" name="date" value="{{ \Carbon\Carbon::parse($attendance->date)->format('Y-m-d') }}">
+                        @error('date')
+                        <div class="attendance-detail__error">{{ $message }}</div>
+                        @enderror
                     </td>
                 </tr>
                 <tr class="attendance-detail__table-row">
@@ -69,8 +71,8 @@
                 <tr class="attendance-detail__table-row textarea">
                     <th class="detail-label">備考</th>
                     <td class="detail-data">
-                        <textarea name="note" id="" class="detail-data__text" cols="15" rows="3" {{ $isPending ? 'readonly' : ''}}>{{ old('note',$correction->note ?? $attendance->note) }}</textarea>
-                        @error('note')
+                        <textarea name="request_note" id="" class="detail-data__text" cols="15" rows="3" {{ $isPending ? 'readonly' : ''}}>{{ old('request_note',$correction->request_note ?? $attendance->note) }}</textarea>
+                        @error('request_note')
                         <div class="attendance-detail__error">{{ $message }}</div>
                         @enderror
                     </td>

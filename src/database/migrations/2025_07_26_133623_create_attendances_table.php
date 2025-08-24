@@ -19,6 +19,7 @@ return new class extends Migration
             $table->dateTime('clock_out')->nullable();
             $table->integer('total_work_time')->nullable();
             $table->integer('total_break_time')->nullable();
+            $table->text('note')->nullable();
             $table->timestamps();
 
             $table->unique(['user_id', 'date']);

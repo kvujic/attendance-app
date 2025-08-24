@@ -102,6 +102,30 @@ body {
     color: #000;
 }
 
+.csv-button__wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.csv-button {
+    text-decoration: none;
+    width: 180px;
+    background-color: #000;
+    color: #fff;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 10px 40px;
+    margin-top: 60px;
+    cursor: pointer;
+}
+
+.csv-button:hover {
+    opacity: 0.7;
+}
+
 @media (min-width: 768px) and (max-width: 850px) {
     .attendance-list__container {
         width: 80%;

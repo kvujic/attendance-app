@@ -22,7 +22,7 @@ class RegisterController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'authority' => 2,
+            'role' => 2,
         ]);
 
         Auth::login($user);

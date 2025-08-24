@@ -27,6 +27,7 @@ body {
     justify-content: flex-start;
     align-items: center;
     gap: 100px;
+    min-width: 0;
 }
 
 .tab-menu {
@@ -47,6 +48,7 @@ body {
     border-radius: 10px;
     width: 100%;
     text-align: center;
+    table-layout: fixed;
 }
 
 .correction-list__table-row {
@@ -66,13 +68,42 @@ body {
 }
 
 .correction-list__label {
-    padding: 0 40px;
     color: #737373;
+    text-align: left;
+    padding-right: 30px;
+    width: 17%;
+}
+
+.correction-list__label:first-child {
+    text-align: left;
+    width: 17%;
+    padding-left: 40px;
+}
+
+.correction-list__label:last-child {
+    width: 10%;
+    padding-right: 30px;
 }
 
 .correction-list__data {
     color: #737373;
     font-weight: bold;
+    text-align: left;
+}
+
+.correction-list__data:first-child {
+    text-align: left;
+    width: 100px;
+}
+
+.data-status {
+    padding-left: 40px;
+}
+
+.data-detail {
+    text-align: left;
+    width: 10%;
+    padding-right: 30px;
 }
 
 .detail-link {
@@ -80,14 +111,35 @@ body {
     color: #000;
 }
 
+.correction-list__data.list-message {
+    font-size: 16px;
+    text-align: center;
+}
+
 @media (min-width: 768px) and (max-width: 850px) {
     .correction-list__container {
         width: 80%;
     }
+    .border {
+        width: 100%;
+    }
+    .tab-nav {
+        gap: 70px;
+    }
     .correction-list__table {
         font-size: 14px;
+        width: 100%;
     }
     .correction-list__label {
-        padding: 0 10px;
+        padding: 0;
+    }
+    .correction-list__label:first-child {
+        padding-left: 20px;
+    }
+    .correction-list__data {
+        padding: 0;
+    }
+    .data-status {
+        padding-left: 20px;
     }
 }

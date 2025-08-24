@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role'
     ];
 
     /**
@@ -41,17 +42,18 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'role' => 'integer',
     ];
 
     // privilege definition
-    const AUTHORITY_ADMIN = 1;
-    const AUTHORITY_STAFF = 2;
+    const ROLE_ADMIN = 1;
+    const ROLE_STAFF = 2;
 
-    public static function authorityLabels(): array
+    public static function roleLabels(): array
     {
         return [
-            self::AUTHORITY_ADMIN => '管理者',
-            self::AUTHORITY_STAFF => 'スタッフ',
+            self::ROLE_ADMIN => '管理者',
+            self::ROLE_STAFF => 'スタッフ',
         ];
     }
 

@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Log;
 
 class AttendanceController extends Controller
 {
-    public function create() 
+    public function create()
     {
         $user = Auth::user();
         $today = now()->toDateString();

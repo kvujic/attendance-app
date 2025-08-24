@@ -14,7 +14,8 @@ class AttendanceCorrection extends Model
         'attendance_id',
         'requested_clock_in',
         'requested_clock_out',
-        'note',
+        'request_note',
+        'admin_note',
         'status',
     ];
 
@@ -33,7 +34,7 @@ class AttendanceCorrection extends Model
     }
 
     public function correctionBreaks() {
-        return $this->hasMany(CorrectionBreak::class)->orderBy('requested_break_start');
+        return $this->hasMany(CorrectionBreak::class, 'attendance_correction_id');
     }
 
     public function getStatusLabelAttribute()
