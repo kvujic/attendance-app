@@ -24,7 +24,7 @@ class AttendanceController extends Controller
         ->first();
 
         if (!$attendance) {
-            $status = 'outside_work';
+            $status = 'off_duty';
         } elseif ($attendance->clock_out) {
             $status = 'after_work';
         } elseif ($attendance->isOnBreak()) {

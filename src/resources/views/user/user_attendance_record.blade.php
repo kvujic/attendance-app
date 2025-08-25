@@ -14,7 +14,7 @@
     <div class="status-display">
         <p class="current-status">
             @switch($attendanceStatus)
-            @case('outside_work') 勤務外 @break
+            @case('off_duty') 勤務外 @break
             @case('working') 勤務中 @break
             @case('on_break') 休憩中 @break
             @case('after_work') 退勤済 @break
@@ -35,7 +35,7 @@
     <div class="punch-buttons">
         <form action="{{ route('attendance.create') }}" method="POST">
             @csrf
-            @if ($attendanceStatus === 'outside_work')
+            @if ($attendanceStatus === 'off_duty')
             <button class="clock-in" type="submit" name="action" value="clock_in">出勤</button>
             @elseif ($attendanceStatus === 'working')
             <button class="clock-out" type="submit" name="action" value="clock_out">退勤</button>
