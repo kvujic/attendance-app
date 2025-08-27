@@ -12,7 +12,7 @@
 
 <div class="attendance-detail__container">
     <h1 class="attendance-detail__title">勤怠詳細</h1>
-    <form action="{{ route('attendance.update', ['id' => $id]) }}" method="POST">
+    <form action="{{ route('attendance.update', ['id' => $attendance->id]) }}" method="POST">
         @csrf
         <table class="attendance-detail__table">
             <tbody id="break-rows">
@@ -81,10 +81,12 @@
         </table>
 
         <div class="attendance-detail__action">
-            @if (!$isPending)
-            <button class="action-button" type="submit">修正</button>
-            @else
+            @if (request('from') === 'approved' && optional($correction)->status === 'approved')
+            <button class="action-button badge-approved" type="button" disabled>承認済み</button>
+            @elseif ($isPending)
             <p class="pending-message">*承認待ちのため修正はできません。</p>
+            @else
+            <button class="action-button" type="submit">修正</button>
             @endif
         </div>
     </form>

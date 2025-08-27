@@ -36,7 +36,7 @@
         <form action="{{ route('attendance.create') }}" method="POST">
             @csrf
             @if ($attendanceStatus === 'off_duty')
-            <button class="clock-in" type="submit" name="action" value="clock_in">出勤</button>
+            <button class="clock-in" data-testid="clock-in-button" type="submit" name="action" value="clock_in">出勤</button>
             @elseif ($attendanceStatus === 'working')
             <button class="clock-out" type="submit" name="action" value="clock_out">退勤</button>
             <button class="break-start" type="submit" name="action" value="break_start">休憩入</button>

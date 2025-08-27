@@ -16,7 +16,7 @@
         メール認証を完了してください。
     </h2>
     <div class="verify-email__link">
-        <a href="http://localhost:8025" class="verify-email__link-button">認証はこちらから</a>
+        <a href="http://localhost:8025" target="_blank" class="verify-email__link-button">認証はこちらから</a>
         <form action="{{ route('verification.send') }}" class="verify-email__form" method="POST">
             @csrf
             <div class="verify-email__resend">

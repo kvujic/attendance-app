@@ -1,6 +1,6 @@
 <div>
     <div class="attendance-list__container attendance-list__admin">
-        <h1 class="attendance-list__title">{{ $currentDate->format('Y年m月d日') }}の勤怠</h1>
+        <h1 class="attendance-list__title">{{ $currentDate->format('Y年n月j日') }}の勤怠</h1>
 
         <div class="month-switcher">
             <button wire:click="previousDay" type="button" class="nav-button">
