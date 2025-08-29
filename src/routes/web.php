@@ -50,13 +50,11 @@ Route::middleware('auth', 'verified')->group(function() {
     Route::post('/attendance', [AttendanceController::class, 'store'])->name('attendance.store');
 
     Route::get('/attendance/list', [AttendanceController::class, 'index'])->name('attendance.list');
-    Route::get('/attendance/{id}', [AttendanceController::class, 'show'])->name('attendance.show');
+    Route::get('/attendance/{id}', [AttendanceController::class, 'show'])->where('id', 'new|\d+')->name('attendance.show');
     Route::post('/attendance/{id}', [CorrectionController::class, 'update'])->name('attendance.update');
 
     Route::post('/logout', [UserLoginController::class, 'logout'])->name('logout');
 });
-
-
 
 
 // admin

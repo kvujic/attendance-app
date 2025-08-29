@@ -79,7 +79,7 @@ class StaffController extends Controller
         $csv = stream_get_contents($fp);
         fclose($fp);
 
-        $filename = sprintf('attendance_%s_%s.csv', $user->name, $start->format('Y-m'));
+        $filename = sprintf('勤怠一覧_%s_%s.csv', $user->name, $start->format('Y-m'));
         return response($csv, 200, [
             'Content-Type' => 'text/csv; charset=UTF-8',
             'Content-Disposition' => "attachment; filename=\"{$filename}\"",

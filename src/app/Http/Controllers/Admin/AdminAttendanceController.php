@@ -13,9 +13,32 @@ use Carbon\Carbon;
 
 class AdminAttendanceController extends Controller
 {
-    public function index() {
-        
-        return view('admin.admin_attendance_list');
+    public function index(Request $request)
+    {
+        $admin = Auth::guard('admin')->user();
+        abort_unless($admin && ($admin->role === 1), 403);
+
+        $dateStr = $request->query('date', now()->toDateString());
+        $currentDate = Carbon::parse($dateStr)->startOfDay();
+
+        $isNextDisabled = $currentDate->isSameDay(now()->startOfDay());
+
+        $prevDateStr = $currentDate->copy()->subDay()->toDateString();
+        $nextDateStr = $isNextDisabled
+            ? null
+            : $currentDate->copy()->addDay()->toDateString();
+
+        $attendances = Attendance::with('user')
+            ->whereDate('date', $currentDate)
+            ->orderBy('user_id')
+            ->get();
+
+        return view('admin.admin_attendance_list', [
+            'currentDate' => $currentDate,
+            'attendances' => $attendances,
+            'prevDateStr' => $prevDateStr,
+            'nextDateStr' => $nextDateStr,
+        ]);
     }
 
     public function showDetail($id, Request $request)

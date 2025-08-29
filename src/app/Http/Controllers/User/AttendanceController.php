@@ -99,10 +99,58 @@ class AttendanceController extends Controller
     }
 
 
-
+    /*
     public function index()
     {
         return view('user.user_attendance_list');
+    }
+    */
+
+    public function index(Request $request)
+    {
+        $user = $request->user();
+
+        $monthStr = $request->query('month');
+        if (!is_string($monthStr) || !preg_match('/^\d{4}-\d{2}$/', $monthStr)) {
+            $monthStr = now()->format('Y-m');
+        }
+
+        try {
+            $currentMonth = Carbon::createFromFormat('Y-m', $monthStr)->startOfMonth();
+        } catch (\Exception $e) {
+            $currentMonth - now()->startOfMonth();
+        }
+
+        $daysInMonth = collect();
+        $cursor = $currentMonth->copy();
+        while ($cursor->month === $currentMonth->month) {
+            $daysInMonth->push($cursor->copy());
+            $cursor->addDay();
+        }
+
+        $attendances = Attendance::where('user_id', $user->id)
+            ->whereBetween('date', [
+                $currentMonth->toDateString(),
+                $currentMonth->copy()->endOfMonth()->toDateString(),
+            ])->get()
+            ->keyBy(function ($a) {
+                return $a->date instanceof \Carbon\Carbon
+                    ? $a->date->toDateString()
+                    : \Carbon\Carbon::parse($a->date)->toDateString();
+            });
+
+        $prevMonthStr = $currentMonth->copy()->subMonth()->format('Y-m');
+        $nextMonthStr = $currentMonth->copy()->addMonth()->format('Y-m');
+
+        return view('user.user_attendance_list', [
+            'currentMonth' => $currentMonth,
+            'daysInMonth' => $daysInMonth,
+            'attendances' => $attendances,
+            'prevMonthStr' => $prevMonthStr,
+            'nextMonthStr' => $nextMonthStr,
+        ]);
+
+        //return view('user.user_attendance_list', compact('currentMonth', 'daysInMonth', 'attendances'));
     }
 
 

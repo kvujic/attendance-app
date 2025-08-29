@@ -88,7 +88,7 @@ class AttendanceRequest extends FormRequest
             'breaks.*.requested_break_start.date_format' => '休憩時間は「HH:MM」の形式で入力してください',
             'breaks.*.requested_break_start.required_with' => '休憩開始時間を入力してください',
             'breaks.*.requested_break_start.after_or_equal' => '休憩時間が不適切な値です',
-            'breaks.*.requested_break_start.before' => '休憩時間が勤務時間外です',
+            'breaks.*.requested_break_start.before' => '休憩時間が不適切な値です',
 
             'breaks.*.requested_break_end.date_format' => '休憩時間は「HH:MM」の形式で入力してください',
             'breaks.*.requested_break_end.required_with' => '休憩終了時間を入力してください',

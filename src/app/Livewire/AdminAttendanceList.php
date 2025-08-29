@@ -54,3 +54,4 @@ class AdminAttendanceList extends Component
         return view('livewire.admin-attendance-list');
     }
 }
+

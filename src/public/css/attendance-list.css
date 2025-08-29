@@ -33,6 +33,7 @@ body {
     font-weight: bold;
     border: none;
     background-color: transparent;
+    text-decoration: none;
 }
 
 .button-arrow {

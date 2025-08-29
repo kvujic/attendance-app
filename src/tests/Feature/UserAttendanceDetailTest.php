@@ -14,25 +14,85 @@ class UserAttendanceDetailTest extends TestCase
 {
     use RefreshDatabase;
 
+    private User $user;
+    private Attendance $attendance;
+
     protected function setUp(): void
     {
-        $this->user = User::factory()->create();
+        parent::setUp();
+
+        $this->user = User::factory()->create([
+            'name' => 'テストユーザー',
+            'email' => 'test@example.com',
+        ]);
 
         $this->attendance = Attendance::factory()->create([
             'user_id' => $this->user->id,
-            'date' => Carbon::today()->toDateString(),
-            'clock_in' => Carbon::now()->toDateTimeString(),
-            'clock_in' => carbon::now()->toDateTimeString(),
+            'date' => Carbon::today()->setDate(2025, 7, 31)->toDateString(),
+            'clock_in' => Carbon::today()->setTime(9, 0)->toDateTimeString(),
+            'clock_in' => carbon::today()->setTime(18, 0)->toDateTimeString(),
         ]);
 
-        $this->breaks = BreakTime::factory()->create([
-            'attendance_id' => $attendance->user->id,
-            'break_start' => Carbon::now()->toDateTimeString(),
-            'break_end' => Carbon::now()->toDateTimeString(),
+        $base = Carbon::parse($this->attendance->date);
+        BreakTime::create([
+            'attendance_id' => $this->attendance->id,
+            'break_start' => $base->copy()->setTime(12, 0),
+            'break_end' => $base->copy()->setTime(12, 45),
+        ]);
+        BreakTime::create([
+            'attendance_id' => $this->attendance->id,
+            'break_start' => $base->copy()->setTime(15, 0),
+            'break_end' => $base->copy()->setTime(15, 15),
         ]);
     }
 
     public function test_logged_in_user_name_is_displayed_on_attendance_detail_page()
     {
+        $this->actingAs($this->user);
 
+        $response = $this->get(route('attendance.show', ['id' => $this->attendance->id]));
+
+        $response->assertOk();
+        $response->assertSee('テストユーザー');
     }
+
+    public function test_selected_date_is_displayed_on_attendance_detail_page()
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->get(route('attendance.show', ['id' => $this->attendance->id]));
+        $response->assertOk();
+
+        $date = \Carbon\Carbon::parse($this->attendance->date);
+
+        $response->assertSee('value="'.$date->format('Y年').'"', false);
+        $response->assertSee('value="'.$date->format('n月j日').'"', false);
+    }
+
+    public function test_clock_in_and_clock_out_times_matches_the_time_stamped_on_attendance_detail_page()
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->get(route('attendance.show', ['id' => $this->attendance->id]));
+        $response->assertOk();
+
+        $expectedIn = Carbon::parse($this->attendance->clock_in)->format('H:i');
+        $expectedOut = Carbon::parse($this->attendance->clock_out)->format('H:i');
+
+        $response->assertSee($expectedIn);
+        $response->assertSee($expectedOut);
+    }
+
+    public function test_break_times_are_matches_the_time_stamped_on_attendance_detail_page()
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->get(route('attendance.show', ['id' => $this->attendance->id]));
+        $response->assertOk();
+
+        $response->assertSee('12:00');
+        $response->assertSee('12:45');
+        $response->assertSee('15:00');
+        $response->assertSee('15:15');
+    }
+}
