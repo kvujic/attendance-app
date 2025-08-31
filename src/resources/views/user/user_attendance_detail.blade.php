@@ -12,7 +12,7 @@
 
 <div class="attendance-detail__container">
     <h1 class="attendance-detail__title">勤怠詳細</h1>
-    <form action="{{ route('attendance.update', ['id' => $attendance->id]) }}" method="POST">
+    <form action="{{ route('attendance.update', ['id' => $id]) }}" method="POST">
         @csrf
         <table class="attendance-detail__table">
             <tbody id="break-rows">

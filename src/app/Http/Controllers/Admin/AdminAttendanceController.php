@@ -8,7 +8,6 @@ use App\Models\Attendance;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class AdminAttendanceController extends Controller
@@ -47,12 +46,6 @@ class AdminAttendanceController extends Controller
         if ($id === 'new') {
             $date = $request->input('date');
             $userId = (int) $request->input('user_id');
-
-            Log::debug('Admin showDetail(new)', [
-                'full_url' => $request->fullUrl(),
-                'user_id'  => $userId,
-                'date'     => $date,
-            ]);
 
             abort_unless($userId && $date, 404);
             $user = User::findOrFail($userId);
@@ -171,7 +164,7 @@ class AdminAttendanceController extends Controller
     //align break-row to requested_* key for display
     private function mapBreaksToRequested($rows): array
     {
-        if (empty($rows)) return []; //[['requested_break_start' => '', 'requested_break_end' => '']];
+        if (empty($rows)) return [];
         $out = [];
 
         foreach ($rows as $row) {

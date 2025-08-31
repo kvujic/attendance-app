@@ -68,8 +68,6 @@ class AdminCorrectionController extends Controller
             $breaks[] = ['requested_break_start' => '', 'requested_break_end' => ''];
         }
 
-        //$isPending = $correction->status === 'pending',
-
         return view('admin.admin_correction_approve', [
             'correction' => $correction,
             'isReadOnly' => true,
