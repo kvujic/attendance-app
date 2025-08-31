@@ -68,8 +68,8 @@ Route::prefix('admin')->name('admin.')->group(function() {
         Route::get('/attendance/list', [AdminAttendanceController::class, 'index'])->name('attendance.list');
 
         Route::get('/staff/list', [StaffController::class, 'index'])->name('staff.list');
-        Route::get('/attendance/staff/{user}', [StaffController::class, 'showAttendance'])->name('attendance.staff');
-        Route::get('/attendance/staff/{user}/csv', [StaffController::class, 'exportCsv'])->name('attendance.csv');
+        Route::get('/attendance/staff/{id}', [StaffController::class, 'showAttendance'])->whereNumber('id')->name('attendance.staff');
+        Route::get('/attendance/staff/{id}/csv', [StaffController::class, 'exportCsv'])->whereNumber('id')->name('attendance.csv');
 
         Route::get('/attendance/{id}', [AdminAttendanceController::class, 'showDetail'])->where('id', 'new|[0-9]+')->name('attendance.showDetail');
         Route::post('/attendance/{id}', [AdminCorrectionController::class, 'updateAttendance'])->where('id', 'new|[0-9]+')->name('attendance.updateAttendance');

@@ -22,7 +22,7 @@ class UserAttendanceDetailTest extends TestCase
         parent::setUp();
 
         $this->user = User::factory()->create([
-            'name' => 'テストユーザー',
+            'name' => 'test user',
             'email' => 'test@example.com',
         ]);
 
@@ -53,7 +53,7 @@ class UserAttendanceDetailTest extends TestCase
         $response = $this->get(route('attendance.show', ['id' => $this->attendance->id]));
 
         $response->assertOk();
-        $response->assertSee('テストユーザー');
+        $response->assertSee('test user');
     }
 
     public function test_selected_date_is_displayed_on_attendance_detail_page()

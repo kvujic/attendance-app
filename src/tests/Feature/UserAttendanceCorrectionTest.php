@@ -33,12 +33,12 @@ class UserAttendanceCorrectionTest extends TestCase
         ]);
     }
 
-    public function test_validation_message_is_displayed_when_clock_in_after_clock_out()
+    public function test_validation_message_is_displayed_when_clock_in_is_after_clock_out()
     {
         $this->actingAs($this->user);
 
         $response = $this->from(route('attendance.show', ['id' => $this->attendance->id]))
-            ->post(route('attendance.update',['id' => $this->attendance->id]),
+            ->post(route('attendance.update', ['id' => $this->attendance->id]),
                 [
                     'requested_clock_in' => '19:00',
                     'requested_clock_out' => '18:00',
@@ -53,7 +53,7 @@ class UserAttendanceCorrectionTest extends TestCase
         ]);
     }
 
-    public function test_validation_message_displayed_when_break_start_after_clock_out()
+    public function test_validation_message_displayed_when_break_start_is_after_clock_out()
     {
         $this->actingAs($this->user);
 
@@ -78,7 +78,7 @@ class UserAttendanceCorrectionTest extends TestCase
         ]);
     }
 
-    public function test_validation_message_displayed_when_break_end_after_clock_out()
+    public function test_validation_message_displayed_when_break_end_is_after_clock_out()
     {
         $this->actingAs($this->user);
 
@@ -103,7 +103,7 @@ class UserAttendanceCorrectionTest extends TestCase
         ]);
     }
 
-    public function test_validation_message_displayed_when_note_is_empty()
+    public function test_validation_message_displayed_when_request_note_is_empty()
     {
         $this->actingAs($this->user);
 
@@ -237,7 +237,7 @@ class UserAttendanceCorrectionTest extends TestCase
         $this->actingAs($this->user);
         $response = $this->get(route('stamp_correction_request.index', ['tab' => 'approved']));
         $response->assertOk();
-        $response->assertSee((string)$correction->id);
+        $response->assertSee((string)$correction->attendance->id);
     }
 
     public function test_detail_button_navigates_to_attendance_detail_page()

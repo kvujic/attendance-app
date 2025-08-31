@@ -23,9 +23,15 @@
 
         </div>
 
+        @if ($nextMonthStr)
         <a href="{{ route('attendance.list', ['month' => $nextMonthStr]) }}" class="nav-button">
             翌月<img src="{{ asset('images/arrow_right.svg') }}" alt="→" class="button-arrow">
         </a>
+        @else
+        <button class="nav-button" type="button" disabled>
+            翌月<img src="{{ asset('images/arrow_right.svg') }}" alt="→" class="button-arrow">
+        </button>
+        @endif
     </div>
 
     <table class="attendance-list__table">

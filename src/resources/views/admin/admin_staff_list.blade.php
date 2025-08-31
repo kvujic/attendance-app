@@ -27,7 +27,7 @@
                 <td class="staff-list__data">{{ $user->name }}</td>
                 <td class="staff-list__data">{{ $user->email }}</td>
                 <td class="staff-list__data data-detail">
-                    <a href="{{ route('admin.attendance.staff', ['user' => $user->id, 'month' => now()->format('Y/m')]) }}" class="staff-list__link">詳細</a>
+                    <a href="{{ route('admin.attendance.staff', ['id' => $user->id, 'month' => now()->format('Y/m')]) }}" class="staff-list__link">詳細</a>
                 </td>
             </tr>
             @endforeach

@@ -19,13 +19,70 @@ class StaffController extends Controller
         return view('admin.admin_staff_list', compact('users'));
     }
 
-    public function showAttendance (User $user)
+    public function showAttendance (int $id, Request $request)
     {
-        return view('admin.admin_staff_attendance_list', compact('user'));
+        $user = User::findOrFail($id);
+
+        $monthStr = $request->query('month', now()->format('Y-m'));
+        
+        $normalized = str_replace('/', '-', $monthStr);
+        if (preg_match('/^\d{4}-\d{1,2}$/', $normalized)) {
+            $normalized .= '-01';
+        }
+
+        $currentMonth = Carbon::parse($normalized)->startOfMonth();
+        $start = $currentMonth->copy();
+        $end = $currentMonth->copy()->endOfMonth();
+
+        $records = Attendance::where('user_id', $user->id)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->get();
+        $byDate = $records->keyBy(fn ($attendance) => Carbon::parse($attendance->date)->toDateString());
+
+        $rows = [];
+        foreach (CarbonPeriod::create($start, $end) as $day) {
+            $dateStr = $day->toDateString();
+            $attendance = $byDate->get($dateStr);
+
+            $in = $attendance?->clock_in ? Carbon::parse($attendance->clock_in)->format('H:i') : '';
+            $out = $attendance?->clock_out ? Carbon::parse($attendance->clock_out)->format('H:i') : '';
+
+            $toHhmm = function ($min) {
+                if ($min === null) return '';
+                $min = (int) $min;
+                $h = intdiv($min, 60);
+                $m = $min % 60;
+                return $h . ':' . str_pad($m, 2, '0', STR_PAD_LEFT);
+            };
+
+            $rows[] = [
+                'label' => $day->locale('ja')->isoFormat('MM/DD(dd)'),
+                'dateStr' => $dateStr,
+                'attendance' => $attendance,
+                'clock_in' => $in,
+                'clock_out' => $out,
+                'break_total' => $toHhmm($attendance?->total_break_time),
+                'work_total' => $toHhmm($attendance?->total_work_time),
+            ];
+        }
+        
+        $prevMonthStr = $currentMonth->copy()->subMonth()->format('Y-m');
+        $todayMonth = now()->startOfMonth();
+        $nextMonth = $currentMonth->copy()->addMonth();
+        $nextMonthStr = $nextMonth->lte($todayMonth) ? $nextMonth->format('Y-m') : null;
+
+        return view('admin.admin_staff_attendance_list', [
+            'user' => $user,
+            'currentMonth' => $currentMonth,
+            'rows' => $rows,
+            'prevMonthStr' => $prevMonthStr,
+            'nextMonthStr' => $nextMonthStr,
+        ]);
     }
 
-    public function exportCsv(User $user)
+    public function exportCsv(int $id, Request $request)
     {
+        $user = User::findOrFail($id);
         // query: ?exportCsv=YYYY=MM
         $month = request('month');
         $start = $month 

@@ -9,7 +9,7 @@
 @section('content')
 
 @include('components.admin_header')
-{{--@livewire('admin-attendance-list')--}}
+
 <div class="attendance-list__container attendance-list__admin">
     <h1 class="attendance-list__title">{{ $currentDate->format('Y年n月j日') }}の勤怠</h1>
 
