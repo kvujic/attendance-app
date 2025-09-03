@@ -4,8 +4,6 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 
@@ -22,7 +20,6 @@ class AdminLoginController extends Controller
 
     public function login (LoginRequest $request)
     {
-        // prevent log in at the same time
         Auth::guard('web')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();

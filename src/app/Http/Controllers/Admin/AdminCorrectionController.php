@@ -17,12 +17,11 @@ class AdminCorrectionController extends Controller
 {
     public function index(Request $request)
     {
-        // tab
         $tab = $request->string('tab')->toString();
         if (! in_array($tab, ['pending', 'approved'], true)) {
             $tab = 'pending';
         }
-        // all users are target
+
         $corrections = AttendanceCorrection::query()
             ->with([
                 'user:id,name',
@@ -82,7 +81,6 @@ class AdminCorrectionController extends Controller
             return back();
         }
 
-        // attendance was already made when it was applied (clock_in/out might be null)
         $correction->load(['attendance', 'correctionBreaks', 'user']);
         if (!$correction->attendance) {
             return back();
@@ -132,7 +130,6 @@ class AdminCorrectionController extends Controller
             if ((int)$attendance->user_id !== (int)$targetUser->id) {
                 abort(404);
             }
-            // existing based on the date of record
             $targetDate = Carbon::parse($attendance->date)->toDateString();
         }
 
@@ -143,13 +140,10 @@ class AdminCorrectionController extends Controller
             ? Carbon::parse("{$targetDate} {$request->input('requested_clock_out')}")->format('Y-m-d H:i:s')
             : null;
 
-        // use same note in attendances table
-        $publicNote = $request->input('request_note'); //nullable (new)
+        $publicNote = $request->input('request_note');
 
-        //transaction
         \DB::transaction(function () use ($request, $attendance, $clockIn, $clockOut, $publicNote, $targetDate) {
 
-            // new part
             $correction = AttendanceCorrection::create([
                 'attendance_id' => $attendance->id,
                 'user_id' => $attendance->user_id,
@@ -170,7 +164,6 @@ class AdminCorrectionController extends Controller
                 }
             }
 
-            //reflect to attendance
             $correction->load('correctionBreaks');
             $this->applyCorrectionToAttendance($correction);
         });
@@ -181,14 +174,12 @@ class AdminCorrectionController extends Controller
 
     }
 
-    // reflect from correction to attendance and calculate sum, copy the note, replace breaks
     protected function applyCorrectionToAttendance(AttendanceCorrection $correction): void
     {
         $correction->loadMissing(['attendance', 'correctionBreaks']);
         $attendance = $correction->attendance;
         if (! $attendance)return;
 
-        // use date from attendance
         $workDate = Carbon::parse($attendance->date)->toDateString();
 
         // marge to datetime expecting 'H:i'
@@ -204,15 +195,11 @@ class AdminCorrectionController extends Controller
                 : \Carbon\Carbon::parse($correction->requested_clock_out))
             : null;
 
-        // reflect attendance
         $attendance->clock_in = $ci ? $ci->format('Y-m-d H:i:s') : null;
         $attendance->clock_out = $co ? $co->format('Y-m-d H:i:s') : null;
-
-        // reflect request_note to note
         $attendance->note = $correction->request_note ?: null;
         $attendance->save();
 
-        // breaks are replaced (delete existing break_times)
         BreakTime::where('attendance_id', $attendance->id)->delete();
         foreach ($correction->correctionBreaks as $b) {
             $bs = $b->requested_break_start
@@ -235,7 +222,6 @@ class AdminCorrectionController extends Controller
             }
         }
 
-         // calculate sum
         $breaks = BreakTime::where('attendance_id', $attendance->id)->get();
 
         $breakMinutes = $breaks->sum(function ($bt) {

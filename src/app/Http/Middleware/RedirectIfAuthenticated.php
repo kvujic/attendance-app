@@ -24,7 +24,6 @@ class RedirectIfAuthenticated
                 return $guard === 'admin'
                     ? redirect()->route('admin.attendance.list')
                     : redirect()->route('attendance.create');
-               // return redirect(RouteServiceProvider::HOME);
             }
         }
 

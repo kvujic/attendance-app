@@ -32,14 +32,12 @@ class CorrectionController extends Controller
         } else {
             $targetDate = Carbon::parse($request->date)->toDateString();
 
-            // user_id + date = unique(?)
             $attendance = Attendance::firstOrCreate(
                 ['user_id' => Auth::id(), 'date' => $targetDate],
                 ['clock_in' => null, 'clock_out' => null]
             );
         }
 
-        //transaction
         \DB::transaction(function () use ($request, $attendance) {
             $workDate = Carbon::parse($attendance->date)->toDateString();
 

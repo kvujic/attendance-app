@@ -5,12 +5,10 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrection;
-use App\Models\User;
-use App\Models\BreakTime;
+use App\Models\CorrectionBreak;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 
 class AttendanceController extends Controller
 {
@@ -20,8 +18,8 @@ class AttendanceController extends Controller
         $today = now()->toDateString();
 
         $attendance = Attendance::where('user_id', $user->id)
-        ->whereDate('date', $today)
-        ->first();
+            ->whereDate('date', $today)
+            ->first();
 
         if (!$attendance) {
             $status = 'off_duty';
@@ -36,7 +34,7 @@ class AttendanceController extends Controller
         return view('user.user_attendance_record', ['attendanceStatus' => $status,]);
     }
 
-    public function store (Request $request) 
+    public function store(Request $request)
     {
         $user = Auth::user();
         $today = now()->toDateString();
@@ -71,7 +69,7 @@ class AttendanceController extends Controller
 
                     $totalBreak = $attendance->breakTimes->sum(function ($break) {
                         if ($break->break_start && $break->break_end) {
-                            return \Carbon\Carbon::parse($break->break_end)->diffInMinutes(\Carbon\Carbon::parse($break->break_start));
+                            return Carbon::parse($break->break_end)->diffInMinutes(Carbon::parse($break->break_start));
                         }
                         return 0;
                     });
@@ -102,10 +100,9 @@ class AttendanceController extends Controller
     {
         $user = $request->user();
 
-        $raw = $request->query('month');            // 例: "2025-09"
+        $raw = $request->query('month');
         $todayMonth = now()->startOfMonth();
 
-        // 1) 月の確定（不正/例外のみ todayMonth にフォールバック、未来は許可）
         if (is_string($raw) && preg_match('/^\d{4}-\d{2}$/', $raw)) {
             try {
                 $currentMonth = Carbon::createFromFormat('Y-m', $raw)->startOfMonth();
@@ -116,12 +113,10 @@ class AttendanceController extends Controller
             $currentMonth = $todayMonth->copy();
         }
 
-        // 2) 前月/翌月（「翌月が今日の月を超える」なら null → ボタン無効化）
         $prevMonthStr = $currentMonth->copy()->subMonth()->format('Y-m');
         $nextMonth    = $currentMonth->copy()->addMonth();
         $nextMonthStr = $nextMonth->greaterThan($todayMonth) ? null : $nextMonth->format('Y-m');
 
-        // 3) 当月の日付配列（Carbonのコレクション）
         $start = $currentMonth->copy();
         $end   = $currentMonth->copy()->endOfMonth();
         $daysInMonth = collect();
@@ -129,7 +124,6 @@ class AttendanceController extends Controller
             $daysInMonth->push($d->copy());
         }
 
-        // 4) 勤怠（YYYY-MM-DD をキーに）
         $attendances = Attendance::where('user_id', $user->id)
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
             ->orderBy('date')
@@ -149,20 +143,17 @@ class AttendanceController extends Controller
         ));
     }
 
-
-    public function show ($id, Request $request)
+    public function show(string $id, Request $request)
     {
         $user = Auth::user();
 
         if ($id === 'new') {
-            $date = $request->input('date');
-            //check attendance data exist or not
+            $date = (string) $request->input('date');
             $attendance = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $date)
                 ->with(['breakTimes' => fn($q) => $q->orderBy('break_start')])
                 ->first();
 
-            //pass like empty object (dummy) data if not exist
             if (!$attendance) {
                 $attendance = new Attendance([
                     'user_id' => $user->id,
@@ -172,70 +163,29 @@ class AttendanceController extends Controller
                 ]);
                 $attendance->exists = false;
             }
-
-            //pending priority
-            $correction = $attendance->exists
-                ? AttendanceCorrection::where('attendance_id', $attendance->id)
-                    ->where('status', 'pending')
-                    ->with(['correctionBreaks' => fn($q) => $q->orderBy('requested_break_start')])
-                    ->first()
-                : null;
-
-            $isPending = $correction?->status === 'pending';
-
-                // display (old > application > stamp)
-                $oldBreaks = old('breaks');
-                if (!empty($oldBreaks)) {
-                    $breaksSource = $oldBreaks; //array
-                } elseif ($correction && ($correction->correctionBreaks?->isNotEmpty())) {
-                    $breaksSource = $correction->correctionBreaks; //correction
-                } else {
-                    $breaksSource = $attendance->breakTimes; //correction
-                }
-
-                // changes to requested_* all
-                $breaks = $this->mapBreaksToRequested($breaksSource);
-
-                if (empty($breaks) && !$isPending) {
-                    $breaks[] = ['requested_break_start' => '', 'requested_break_end' => ''];
-                }
-
-            $requestedClockIn = old('requested_clock_in') ?? ($correction->requested_clock_in ?? $attendance->clock_in);
-            $requestedClockOut = old('requested_clock_out') ?? ($correction->requested_clock_out ?? $attendance->clock_out);
-
-            $requestedClockIn = $this->fmt($requestedClockIn);
-            $requestedClockOut = $this->fmt($requestedClockOut);
-
-            return view('user.user_attendance_detail', [
-                'attendance' => $attendance,
-                'user' => $user,
-                'date' => $date,
-                'breaks' => $breaks,
-                'breakCount' => count($breaks),
-                'isPending' => $isPending,
-                'id' => $id,
-                'correction' => $correction,
-                'requestedClockIn' => $requestedClockIn,
-                'requestedClockOut' => $requestedClockOut,
-            ]);
+        } else {
+            $attendance = Attendance::with(['breakTimes' => fn($q) => $q->orderBy('break_start')])
+                ->findOrFail($id);
+            $date = \Carbon\Carbon::parse($attendance->date)->toDateString();
         }
 
-        // existing record details
-        $attendance = Attendance::with(['breakTimes' => fn($q) => $q->orderBy('break_start')])->findOrFail($id);
-
-        // pending priority, latest application if pending is not exist, or null
         $correction = AttendanceCorrection::where('attendance_id', $attendance->id)
             ->with(['correctionBreaks' => fn($q) => $q->orderBy('requested_break_start')])
+            ->where(function ($q) {
+                $q->where('status', 'pending')->orWhere('status', 'approved');
+            })
+            ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 ELSE 3 END")
             ->orderByDesc('created_at')
             ->first();
 
         $isPending = $correction?->status === 'pending';
+        $isApproved = $correction?->status === 'approved';
+        $isLocked = $isPending || $isApproved;
 
-        // display (old > application > stamp)
         $oldBreaks = old('breaks');
         if (!empty($oldBreaks)) {
             $breaksSource = $oldBreaks;
-        } elseif ($correction && ($correction->correctionBreaks?->isNotEmpty())) {
+        } elseif ($correction && $correction->correctionBreaks?->isNotEmpty()) {
             $breaksSource = $correction->correctionBreaks;
         } else {
             $breaksSource = $attendance->breakTimes;
@@ -243,12 +193,12 @@ class AttendanceController extends Controller
 
         $breaks = $this->mapBreaksToRequested($breaksSource);
 
-        if (empty($breaks) && !$isPending) {
+        if (empty($breaks) && !$isLocked) {
             $breaks[] = ['requested_break_start' => '', 'requested_break_end' => ''];
         }
 
         $requestedClockIn = old('requested_clock_in') ?? ($correction->requested_clock_in ?? $attendance->clock_in);
-        $requestedClockOut = old('requested_clock_out') ?? ($correction->requested_clock_out ?? $attendance->clock_out);
+        $requestedClockOut = old ('requested_clock_out') ?? ($correction->requested_clock_out ?? $attendance->clock_out);
 
         $requestedClockIn = $this->fmt($requestedClockIn);
         $requestedClockOut = $this->fmt($requestedClockOut);
@@ -256,9 +206,12 @@ class AttendanceController extends Controller
         return view('user.user_attendance_detail', [
             'attendance' => $attendance,
             'user' => $user,
+            'date' => $date,
             'breaks' => $breaks,
             'breakCount' => count($breaks),
             'isPending' => $isPending,
+            'isApproved' => $isApproved,
+            'isLocked' => $isLocked,
             'id' => $id,
             'correction' => $correction,
             'requestedClockIn' => $requestedClockIn,
@@ -266,47 +219,44 @@ class AttendanceController extends Controller
         ]);
     }
 
-     //align break-row to requested_* key for display
-        private function mapBreaksToRequested($rows): array
-        {
-            if (empty($rows)) return []; //[['requested_break_start' => '', 'requested_break_end' => '']];
-            $out = [];
+    //　align break-row to requested_* key for display
+    private function mapBreaksToRequested($rows): array
+    {
+        if (empty($rows)) return [];
+        $out = [];
 
-            foreach ($rows as $row) {
-                if (is_array($row)) {
-                    $out[] = [
-                        'requested_break_start' => $row['requested_break_start'] ?? ($row['start'] ?? ''),
-                        'requested_break_end' => $row['requested_break_end'] ?? ($row['end'] ?? ''),
-                    ];
-                } elseif ($row instanceof \App\Models\CorrectionBreak) {
-                    $out[] = [
-                        'requested_break_start' => $this->fmt($row->requested_break_start),
-                        'requested_break_end' => $this->fmt($row->requested_break_end),
-                    ];
-                } else {
-                    //BreakTime
-                    $out[] = [
-                        'requested_break_start' => $this->fmt($row->break_start),
-                        'requested_break_end' => $this->fmt($row->break_end),
-                    ];
-                }
-            }
-            if (empty($out)) {
-                $out[] = ['requested_break_start' => '', 'requested_break_end' => ''];
-            }
-            return $out;
-        }
-
-        // H:i if there is data, '' if not
-        private function fmt($v): string
-        {
-            if (empty($v)) return '';
-            try {
-                return Carbon::parse($v)->format('H:i');
-            } catch (\Throwable $e) {
-                return '';
+        foreach ($rows as $row) {
+            if (is_array($row)) {
+                $out[] = [
+                    'requested_break_start' => $row['requested_break_start'] ?? ($row['start'] ?? ''),
+                    'requested_break_end' => $row['requested_break_end'] ?? ($row['end'] ?? ''),
+                ];
+            } elseif ($row instanceof CorrectionBreak) {
+                $out[] = [
+                    'requested_break_start' => $this->fmt($row->requested_break_start),
+                    'requested_break_end' => $this->fmt($row->requested_break_end),
+                ];
+            } else {
+                $out[] = [
+                    'requested_break_start' => $this->fmt($row->break_start),
+                    'requested_break_end' => $this->fmt($row->break_end),
+                ];
             }
         }
+        if (empty($out)) {
+            $out[] = ['requested_break_start' => '', 'requested_break_end' => ''];
+        }
+        return $out;
+    }
 
+    // H:i if there is data, '' if not
+    private function fmt($v): string
+    {
+        if (empty($v)) return '';
+        try {
+            return Carbon::parse($v)->format('H:i');
+        } catch (\Throwable $e) {
+            return '';
+        }
+    }
 }
-

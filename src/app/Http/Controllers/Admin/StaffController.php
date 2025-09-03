@@ -24,7 +24,7 @@ class StaffController extends Controller
         $user = User::findOrFail($id);
 
         $monthStr = $request->query('month', now()->format('Y-m'));
-        
+
         $normalized = str_replace('/', '-', $monthStr);
         if (preg_match('/^\d{4}-\d{1,2}$/', $normalized)) {
             $normalized .= '-01';
@@ -65,7 +65,7 @@ class StaffController extends Controller
                 'work_total' => $toHhmm($attendance?->total_work_time),
             ];
         }
-        
+
         $prevMonthStr = $currentMonth->copy()->subMonth()->format('Y-m');
         $todayMonth = now()->startOfMonth();
         $nextMonth = $currentMonth->copy()->addMonth();
@@ -83,9 +83,9 @@ class StaffController extends Controller
     public function exportCsv(int $id, Request $request)
     {
         $user = User::findOrFail($id);
-        // query: ?exportCsv=YYYY=MM
+
         $month = request('month');
-        $start = $month 
+        $start = $month
             ? Carbon::parse($month . '-01')->startOfMonth()
             : now()->startOfMonth();
         $end = $start->copy()->endOfMonth();

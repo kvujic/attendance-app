@@ -9,18 +9,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AdminMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-
     // admin_only for all admin page
     public function handle(Request $request, Closure $next): Response
     {
         $guard = Auth::guard('admin');
 
-        // not login
         if (! $guard->check()) {
             return redirect()->route('admin.login');
         }

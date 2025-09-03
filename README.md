@@ -143,3 +143,41 @@ php artisan test --filter=テストファイル名
 ```
 
 > 各テストクラスで use refresh database; を使用しているため、テストごとに自動でマイグレーションが実行されます
+
+## サンプルユーザー
+
+一般ユーザーログイン URL：http://localhost/login/  
+管理者ユーザーログイン URL:http://localhost/admin/login/  
+
+> 認証済みユーザーです
+
+- 管理者ユーザー  
+  Email: admin@example.com  
+  Password: password  
+
+- 山田 太郎  
+  Email: taro@example.com  
+  Password: password  
+
+- 佐藤 花子  
+  Email: hanako@example.com  
+  Password: password  
+
+## 使用技術
+
+- PHP(8.3.23)
+- Laravel(10.48.29)
+- MySQL(8.0.26)
+- Fortify(1.27.0)
+- MailHog(latest)
+- JavaScript
+
+## ER 図
+
+![art](imgs/er.diagram.png)
+
+## URL
+
+- 開発環境：http://localhost/
+- phpMyAdmin：http://localhost:8080/
+- MailHog：http://localhost:8025/

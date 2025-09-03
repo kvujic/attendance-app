@@ -42,20 +42,19 @@ class AdminAttendanceController extends Controller
 
     public function showDetail($id, Request $request)
     {
-
         if ($id === 'new') {
             $date = $request->input('date');
             $userId = (int) $request->input('user_id');
 
             abort_unless($userId && $date, 404);
             $user = User::findOrFail($userId);
-            //check attendance data exist or not
+
             $attendance = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $date)
                 ->with(['breakTimes' => fn($q) => $q->orderBy('break_start')])
                 ->first();
 
-            //pass like empty object (dummy) data if not exist
+            //pass empty object (dummy) data if not exist
             if (!$attendance) {
                 $attendance = new Attendance([
                     'user_id' => $user->id,
@@ -66,7 +65,6 @@ class AdminAttendanceController extends Controller
                 $attendance->exists = false;
             }
 
-            //pending priority
             $correction = $attendance->exists
                 ? AttendanceCorrection::where('attendance_id', $attendance->id)
                 ->where('status', 'pending')
@@ -79,14 +77,13 @@ class AdminAttendanceController extends Controller
             // display (old > application > stamp)
             $oldBreaks = old('breaks');
             if (!empty($oldBreaks)) {
-                $breaksSource = $oldBreaks; //array
+                $breaksSource = $oldBreaks;
             } elseif ($correction && ($correction->correctionBreaks?->isNotEmpty())) {
-                $breaksSource = $correction->correctionBreaks; //correction
+                $breaksSource = $correction->correctionBreaks;
             } else {
-                $breaksSource = $attendance->breakTimes; //correction
+                $breaksSource = $attendance->breakTimes;
             }
 
-            // changes to requested_* all
             $breaks = $this->mapBreaksToRequested($breaksSource);
 
             if (empty($breaks) && !$isPending) {
@@ -113,12 +110,11 @@ class AdminAttendanceController extends Controller
             ]);
         }
 
-        // existing record details
         $attendance = Attendance::with(['breakTimes' => fn($q) => $q->orderBy('break_start')])->findOrFail($id);
 
         $user = $attendance->user;
 
-        // pending priority, latest application if pending is not exist, or null
+        // pending priority, latest application if pending is not exist or null
         $correction = AttendanceCorrection::where('attendance_id', $attendance->id)
             ->with(['correctionBreaks' => fn($q) => $q->orderBy('requested_break_start')])
             ->orderByDesc('created_at')
@@ -126,7 +122,6 @@ class AdminAttendanceController extends Controller
 
         $isPending = $correction?->status === 'pending';
 
-        // display (old > application > stamp)
         $oldBreaks = old('breaks');
         if (!empty($oldBreaks)) {
             $breaksSource = $oldBreaks;
@@ -179,7 +174,6 @@ class AdminAttendanceController extends Controller
                     'requested_break_end' => $this->fmt($row->requested_break_end),
                 ];
             } else {
-                //BreakTime
                 $out[] = [
                     'requested_break_start' => $this->fmt($row->break_start),
                     'requested_break_end' => $this->fmt($row->break_end),

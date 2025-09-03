@@ -49,11 +49,7 @@ class AttendanceRequest extends FormRequest
 
         foreach ($breaks as $index => $break) {
             $rules["breaks.$index"] = ['array'];
-            //$start = $break['start'] ?? null;
-            //$end = $break['end'] ?? null;
 
-            // どちらか一方でも入力がある場合だけバリデーションする
-            //if ($start || $end) {
                 $rules["breaks.$index.requested_break_start"] = [
                     'bail',
                     'nullable',
@@ -70,7 +66,6 @@ class AttendanceRequest extends FormRequest
                     'after:breaks.' . $index . '.requested_break_start',
                     'before_or_equal:requested_clock_out',
                 ];
-            //}
         }
         return $rules;
     }
