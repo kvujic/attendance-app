@@ -174,7 +174,7 @@ php artisan test --filter=テストファイル名
 
 ## ER 図
 
-![art](imgs/er.diagram.png)
+![art](imgs/er.png)
 
 ## URL
 

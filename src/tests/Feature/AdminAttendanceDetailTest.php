@@ -7,7 +7,6 @@ use App\Models\Attendance;
 use App\Models\BreakTime;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class AdminAttendanceDetailTest extends TestCase
@@ -17,6 +16,7 @@ class AdminAttendanceDetailTest extends TestCase
     protected User $admin;
     protected User $staff;
     protected Attendance $attendance;
+    protected BreakTime $break;
 
     protected function setUp(): void
     {
@@ -45,7 +45,7 @@ class AdminAttendanceDetailTest extends TestCase
             'clock_out' => Carbon::today()->setTime(18, 0, 0)->toDateTimeString(),
         ]);
 
-        BreakTime::create([
+        $this->break = BreakTime::factory()->create([
             'attendance_id' => $this->attendance->id,
             'break_start' => Carbon::today()->setTime(12, 0, 0)->toDateTimeString(),
             'break_end' => Carbon::today()->setTime(13, 0, 0)->toDateTimeString(),

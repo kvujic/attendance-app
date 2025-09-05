@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Attendance;
@@ -10,15 +9,17 @@ use Carbon\Carbon;
 
 class AttendancesTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
+    private const SEED_START_DATE = '2025-01-01';
+    private const STAFF_ROLE = 2;
+    private const OFF_DAYS_PER_WEEK = 2;
+
     public function run(): void
     {
-        $start = Carbon::parse('2025-04-01')->startOfDay();
+        $start = Carbon::parse(self::SEED_START_DATE)->startOfDay();
         $end = now()->startOfDay();
 
-        User::where('role', 2)->each(function ($user) use ($start, $end) {
+        User::where('role', self::STAFF_ROLE)->each(function ($user) use ($start, $end) {
             for ($weekStart = $start->copy()->startOfWeek(); $weekStart->lte($end); $weekStart->addWeek()) {
                 $weekEnd = $weekStart->copy()->endOfWeek();
                 if ($weekEnd->gt($end)) $weekEnd = $end;
@@ -28,9 +29,8 @@ class AttendancesTableSeeder extends Seeder
                     $days[] = $d->copy();
                 }
 
-                // pick 2 days off per a week
                 shuffle($days);
-                $offDays = array_slice($days, 0, min(2, count($days)));
+                $offDays = array_slice($days, 0, min(self::OFF_DAYS_PER_WEEK, count($days)));
                 $offSet = collect($offDays)->map->toDateString()->flip();
 
                 foreach ($days as $date) {

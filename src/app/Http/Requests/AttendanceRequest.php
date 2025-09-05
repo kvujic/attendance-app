@@ -6,8 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 use Carbon\Carbon;
 
-use function PHPSTORM_META\map;
-
 class AttendanceRequest extends FormRequest
 {
     //filtering
@@ -97,7 +95,6 @@ class AttendanceRequest extends FormRequest
 
     public function withValidator(Validator $validator): void {
         $validator->after(function (Validator $v) {
-            // prohibited to edit future
             $date = $this->input('date');
             if ($date && Carbon::parse($date)->isFuture()) {
                 $v->errors()->add('date', '未来日の勤怠は修正できません');

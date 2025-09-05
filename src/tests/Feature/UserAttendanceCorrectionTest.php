@@ -5,12 +5,8 @@ namespace Tests\Feature;
 use App\Models\User;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrection;
-use App\Models\CorrectionBreak;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Database\Seeders\DatabaseSeeder;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Http\ResponseTrait;
 use Tests\TestCase;
 
 class UserAttendanceCorrectionTest extends TestCase
@@ -43,7 +39,7 @@ class UserAttendanceCorrectionTest extends TestCase
                     'requested_clock_in' => '19:00',
                     'requested_clock_out' => '18:00',
                     'request_note' => 'test',
-                    'correction_breaks' => [],
+                    'breaks' => [],
                 ]
             );
 
@@ -125,7 +121,6 @@ class UserAttendanceCorrectionTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        // user requests attendance correction (POST /attendance/{id})
         $payload = [
             'requested_clock_in' => '09:00',
             'requested_clock_out' => '19:00',
@@ -159,7 +154,6 @@ class UserAttendanceCorrectionTest extends TestCase
             'requested_break_end' => '2025-08-01 13:00:00',
         ]);
 
-        // it shows up on admin approval page or not
         $admin = User::create([
             'name' => 'Admin User',
             'email' => 'adminuser@example.com',
@@ -175,7 +169,6 @@ class UserAttendanceCorrectionTest extends TestCase
         $response->assertSee((string)$correction->id);
         $response->assertSee('残業');
 
-        // admin pending approval page
         $response = $this->get(route('stamp_correction_request.index'));
         $response->assertOk();
         $response->assertSee((string)$correction->id);
@@ -217,7 +210,6 @@ class UserAttendanceCorrectionTest extends TestCase
 
         $correction = AttendanceCorrection::latest('id')->first();
 
-        // approved by admin
         $admin = User::create([
             'name' => 'Admin User',
             'email' => 'adminuser@example.com',

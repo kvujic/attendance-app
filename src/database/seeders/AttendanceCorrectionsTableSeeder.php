@@ -2,68 +2,92 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Attendance;
 use App\Models\AttendanceCorrection;
-use App\Models\CorrectionBreak;
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 
 class AttendanceCorrectionsTableSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+
+    private const SAMPLE_COUNT = 8;
+    private const OFFSET_IN_CHOICES = [5, 10, 15, 20];
+    private const OFFSET_OUT_CHOICES = [0, 5, 10];
+    private const OFFSET_SIGNS = [1, -1];
+    private const MIN_OUT_EXTENSION = 5;
+
     public function run(): void
     {
-        $attendances = Attendance::inRandomOrder()->take(5)->get();
+        $attendances = Attendance::query()
+            ->whereNotNull('clock_in')
+            ->whereNotNull('clock_out')
+            ->inRandomOrder()
+            ->take(self::SAMPLE_COUNT)
+            ->get();
 
         foreach ($attendances as $attendance) {
-            $correction = AttendanceCorrection::factory()->create([
-                'user_id' => $attendance->user_id,
-                'attendance_id' => $attendance->id,
-            ]);
-
-            CorrectionBreak::factory()
-                ->count(rand(1, 2))
-                ->create([
-                    'attendance_correction_id' => $correction->id
-                ]);
-
-            /*
-            $date = Carbon::parse($attendance->date)->toDateString();
-
-            $clockIn = Carbon::createFromTime(rand(8, 10), 0, 0);
-            $clockOut = (clone $clockIn)->addHours(rand(7, 9));
-
-            $clockInDt = Carbon::parse("{$date} {$clockIn->format('H:i:s')}");
-            $clockOutDt = Carbon::parse("{$date} {$clockOut->format('H:i:s')}");
-
-            $correction = AttendanceCorrection::create([
-                'user_id' => $attendance->user_id,
-                'attendance_id' => $attendance->id,
-                'requested_clock_in' => $clockInDt->format('Y-m-d H:i:s'),
-                'requested_clock_out' => $clockOutDt->format('Y-m-d H:i:s'),
-                'status' => rand(0, 1) ? 'pending' : 'approved',
-            ]);
-
-            $breakCount = rand(1, 2);
-            $base = Carbon::createFromTime(12, 0, 0);
-
-            for ($i = 0; $i < $breakCount; $i++) {
-                $start = (clone $base)->addMinutes($i * 75);
-                $end = (clone $start)->addMinutes(rand(30, 60));
-
-                $startDt = Carbon::parse("{$date} {$start->format('H:i:s')}");
-                $endDt = Carbon::parse("{$date} {$end->format('H:i:s')}");
-
-                CorrectionBreak::create([
-                    'attendance_correction_id' => $correction->id,
-                    'requested_break_start' => $startDt->format('Y-m-d H:i:s'),
-                    'requested_break_end' => $endDt->format('Y-m-d H:i:s'),
-                ]);
+            if ($attendance->attendanceCorrections()->exists()) {
+                continue;
             }
-            */
+
+            $in = Carbon::parse($attendance->clock_in);
+            $out = Carbon::parse($attendance->clock_out);
+
+            $offsetIn = Arr::random(self::OFFSET_IN_CHOICES) * Arr::random(self::OFFSET_SIGNS);
+            $offsetOut = Arr::random(self::OFFSET_OUT_CHOICES) * Arr::random(self::OFFSET_SIGNS);
+
+            $requestIn = $in->copy()->addMinutes($offsetIn);
+            $requestOut = $out->copy()->addMinutes($offsetOut);
+
+            if ($requestIn->gte($requestOut)) {
+                $requestIn = $in->copy();
+                $requestOut = $out->copy()->addMinutes(max(self::MIN_OUT_EXTENSION, abs($offsetOut)));
+                $offsetIn = 0;
+                $offsetOut = $requestOut->diffInMinutes($out);
+            }
+
+            $reasonsInLate   = ['交通遅延のため遅れてしまいました', '入館時に混雑して遅れてしまいました', '体調不良により出勤が遅れました'];
+            $reasonsInEarly  = ['出勤打刻を早めに押してしまいました'];
+            $reasonsOutLate  = ['会議が長引いたため退勤が遅れました', '引継ぎ対応のため残業しました', '顧客対応で遅くなりました'];
+            $reasonsOutEarly = ['退勤を誤って打刻しました'];
+
+            $candidateIn = null;
+            if ($offsetIn !== 0) {
+                $candidateIn = $offsetIn > 0
+                    ? Arr::random($reasonsInLate)
+                    : Arr::random($reasonsInEarly);
+            }
+
+            $candidateOut = null;
+            if ($offsetOut !== 0) {
+                $candidateOut = $offsetOut > 0
+                    ? Arr::random($reasonsOutLate)
+                    : Arr::random($reasonsOutEarly);
+            }
+
+            if ($candidateIn && $candidateOut) {
+                $requestNote = (abs($offsetIn) >= abs($offsetOut)) ? $candidateIn : $candidateOut;
+            } elseif ($candidateIn) {
+                $requestNote = $candidateIn;
+            } elseif ($candidateOut) {
+                $requestNote = $candidateOut;
+            } else {
+                $requestNote = '休憩時間を変更しました';
+            }
+
+            $status = Arr::random(['pending', 'approved']);
+
+            AttendanceCorrection::factory()->create([
+                'user_id' => $attendance->user->id,
+                'attendance_id' => $attendance->id,
+                'requested_clock_in' => $requestIn,
+                'requested_clock_out' => $requestOut,
+                'status' => $status,
+                'request_note' => $requestNote,
+            ]);
         }
     }
 }
+
+

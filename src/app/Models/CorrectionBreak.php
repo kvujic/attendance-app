@@ -22,6 +22,6 @@ class CorrectionBreak extends Model
 
 
     public function attendanceCorrection() {
-        return $this->belongsTo(AttendanceCorrection::class, 'attendance+correction_id');
+        return $this->belongsTo(AttendanceCorrection::class, 'attendance_correction_id');
     }
 }

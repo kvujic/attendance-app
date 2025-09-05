@@ -7,7 +7,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class EmailVerificationTest extends TestCase

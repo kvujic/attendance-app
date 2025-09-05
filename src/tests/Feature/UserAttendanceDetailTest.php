@@ -30,7 +30,7 @@ class UserAttendanceDetailTest extends TestCase
             'user_id' => $this->user->id,
             'date' => Carbon::today()->setDate(2025, 7, 31)->toDateString(),
             'clock_in' => Carbon::today()->setTime(9, 0)->toDateTimeString(),
-            'clock_in' => carbon::today()->setTime(18, 0)->toDateTimeString(),
+            'clock_out' => carbon::today()->setTime(18, 0)->toDateTimeString(),
         ]);
 
         $base = Carbon::parse($this->attendance->date);

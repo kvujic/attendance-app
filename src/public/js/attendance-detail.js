@@ -6,7 +6,6 @@ function isValidTimeFormat(time) {
     return /^\d{2}:\d{2}$/.test(time);
 }
 
-//if (start && end && !nextStartExists) {
 function addNewBreakRow(index) {
 
     //not add the new row when it's pending
@@ -34,7 +33,6 @@ function addNewBreakRow(index) {
     const lastBreakRow = breakRows[breakRows.length - 1];
     tbody.insertBefore(tr, lastBreakRow ? lastBreakRow.nextSibling : null);
 
-    // continue auto-addition only before application
     if (!window.isPending) {
         const StartEl = tr.querySelector(`input[name="breaks[${index}][requested_break_start]"]`);
         const endEl = tr.querySelector(`input[name="breaks[${index}][requested_break_end]"]`);
@@ -45,13 +43,10 @@ function addNewBreakRow(index) {
 
     // update index
     window.breakIndex += 1;
-
-    console.log(`Row inserted at index ${index}`);
 }
 
 function maybeAddRow(index) {
 
-    // waiting for approval will not add 
     if (window.isPending) return;
 
     const start = document.querySelector(`input[name="breaks[${index}][requested_break_start]"]`)?.value;
@@ -76,15 +71,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const breakRows = document.querySelectorAll('.break-row');
     const lastIndex = breakRows.length ? breakRows.length - 1 : 0;
 
-    //const lastIndex = window.breakIndex - 1;
     const start = document.querySelector(`input[name="breaks[${lastIndex}][requested_break_start]"]`)?.value;
     const end = document.querySelector(`input[name="breaks[${lastIndex}][requested_break_end]"]`)?.value;
     const nextExists = document.getElementsByName(`breaks[${lastIndex + 1}][requested_break_start]`).length > 0;
 
-    console.log(`DOMContentLoaded check: breaks[${lastIndex}] -> $requested_break_start: ${start}, requested_break_end: ${end}`);
-
     if (start && end && !nextExists) {
-        console.log('Adding new row');
         addNewBreakRow(lastIndex + 1);
         window.breakIndex = lastIndex + 2;
     }

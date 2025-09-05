@@ -8,21 +8,19 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Carbon\Carbon;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\AttendanceCorrection>
- */
 class AttendanceCorrectionFactory extends Factory
 {
     protected $model = AttendanceCorrection::class;
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+
+    private const CLOCK_IN_HOUR_MIN = 8;
+    private const CLOCK_IN_HOUR_MAX = 10;
+    private const SHIFT_LENGTH_MIN_HOUR = 7;
+    private const SHIFT_LENGTH_MAX_HOUR = 9;
+
     public function definition(): array
     {
-        $clockIn = Carbon::createFromTime($this->faker->numberBetween(8, 10), 0);
-        $clockOut = (clone $clockIn)->addHours($this->faker->numberBetween(7, 9));
+        $clockIn = Carbon::createFromTime($this->faker->numberBetween(self::CLOCK_IN_HOUR_MIN, self::CLOCK_IN_HOUR_MAX), 0);
+        $clockOut = (clone $clockIn)->addHours($this->faker->numberBetween(self::SHIFT_LENGTH_MIN_HOUR, self::SHIFT_LENGTH_MAX_HOUR));
 
         return [
             'user_id' => User::factory(),

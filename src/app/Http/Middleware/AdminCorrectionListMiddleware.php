@@ -26,7 +26,6 @@ class AdminCorrectionListMiddleware
                 : response($result);
         }
 
-        // use user's root controller if not admin
         return $next($request);
     }
 }

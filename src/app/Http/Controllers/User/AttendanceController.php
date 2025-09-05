@@ -219,7 +219,6 @@ class AttendanceController extends Controller
         ]);
     }
 
-    //　align break-row to requested_* key for display
     private function mapBreaksToRequested($rows): array
     {
         if (empty($rows)) return [];
@@ -249,7 +248,6 @@ class AttendanceController extends Controller
         return $out;
     }
 
-    // H:i if there is data, '' if not
     private function fmt($v): string
     {
         if (empty($v)) return '';

@@ -43,4 +43,17 @@ class Attendance extends Model
             ->whereNull('break_end')
             ->exists();
     }
+
+
+    public function scopeVisibleOnAdminList($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNotNull('clock_in')
+              ->orWhereNotNull('clock_out')
+              ->orWhereHas('breakTimes')
+              ->orWhereHas('attendanceCorrections', function ($cq) {
+                $cq->where('status', 'approved');
+              });
+        });
+    }
 }

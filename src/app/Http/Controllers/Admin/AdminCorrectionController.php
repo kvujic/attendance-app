@@ -182,7 +182,6 @@ class AdminCorrectionController extends Controller
 
         $workDate = Carbon::parse($attendance->date)->toDateString();
 
-        // marge to datetime expecting 'H:i'
         $ci = $correction->requested_clock_in
             ? (preg_match('/^\d{2}:\d{2}$/', $correction->requested_clock_in)
                 ? \Carbon\Carbon::parse("{$workDate} {$correction->requested_clock_in}:00")

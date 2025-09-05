@@ -6,8 +6,6 @@ use App\Models\User;
 use App\Models\Attendance;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Http\ResponseTrait;
 use Tests\TestCase;
 
 class AttendanceClockInTest extends TestCase

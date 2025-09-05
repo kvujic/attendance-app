@@ -29,6 +29,7 @@ class AdminAttendanceController extends Controller
 
         $attendances = Attendance::with('user')
             ->whereDate('date', $currentDate)
+            ->visibleOnAdminList()
             ->orderBy('user_id')
             ->get();
 
@@ -74,7 +75,6 @@ class AdminAttendanceController extends Controller
 
             $isPending = $correction?->status === 'pending';
 
-            // display (old > application > stamp)
             $oldBreaks = old('breaks');
             if (!empty($oldBreaks)) {
                 $breaksSource = $oldBreaks;
@@ -114,7 +114,6 @@ class AdminAttendanceController extends Controller
 
         $user = $attendance->user;
 
-        // pending priority, latest application if pending is not exist or null
         $correction = AttendanceCorrection::where('attendance_id', $attendance->id)
             ->with(['correctionBreaks' => fn($q) => $q->orderBy('requested_break_start')])
             ->orderByDesc('created_at')
@@ -156,7 +155,6 @@ class AdminAttendanceController extends Controller
         ]);
     }
 
-    //align break-row to requested_* key for display
     private function mapBreaksToRequested($rows): array
     {
         if (empty($rows)) return [];
@@ -186,7 +184,6 @@ class AdminAttendanceController extends Controller
         return $out;
     }
 
-    // H:i if there is data, '' if not
     private function fmt($v): string
     {
         if (empty($v)) return '';

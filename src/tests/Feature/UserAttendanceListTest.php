@@ -86,7 +86,7 @@ class UserAttendanceListTest extends TestCase
     public function test_can_navigate_to_attendance_detail()
     {
         $this->actingAs($this->user);
-        $attendance = Attendance::factory()->onDate(carbon::create(2025, 8, 1))->create(['user_id' => $this->user->id]);
+        $attendance = Attendance::factory()->onDate(Carbon::create(2025, 8, 1))->create(['user_id' => $this->user->id]);
 
         $response = $this->get(route('attendance.show', $attendance->id));
         $response->assertOk();

@@ -24,9 +24,7 @@ class AdminMiddleware
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()
-                ->route('admin.login')
-                ->withErrors(['email' => '管理者権限がありません']);
+            return redirect()->route('admin.login');
         }
 
         return $next($request);
