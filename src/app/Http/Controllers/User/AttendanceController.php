@@ -180,12 +180,18 @@ class AttendanceController extends Controller
 
         $isPending = $correction?->status === 'pending';
         $isApproved = $correction?->status === 'approved';
-        $isLocked = $isPending || $isApproved;
+        $viewReadOnly = $request->query('from') === 'approved' && $isApproved;
+        $isLocked = $isPending || $viewReadOnly;
+
+        $sourceForTimes = $isPending ? $correction : null;
+
+        $requestedClockIn = old('requested_clock_in') ?? ($sourceForTimes->requested_clock_in ?? $attendance->clock_in);
+        $requestedClockOut = old('requested_clock_out') ?? ($sourceForTimes->requested_clock_out ?? $attendance->clock_out);
 
         $oldBreaks = old('breaks');
         if (!empty($oldBreaks)) {
             $breaksSource = $oldBreaks;
-        } elseif ($correction && $correction->correctionBreaks?->isNotEmpty()) {
+        } elseif ($isPending && $correction && $correction->correctionBreaks?->isNotEmpty()) {
             $breaksSource = $correction->correctionBreaks;
         } else {
             $breaksSource = $attendance->breakTimes;
@@ -196,9 +202,6 @@ class AttendanceController extends Controller
         if (empty($breaks) && !$isLocked) {
             $breaks[] = ['requested_break_start' => '', 'requested_break_end' => ''];
         }
-
-        $requestedClockIn = old('requested_clock_in') ?? ($correction->requested_clock_in ?? $attendance->clock_in);
-        $requestedClockOut = old ('requested_clock_out') ?? ($correction->requested_clock_out ?? $attendance->clock_out);
 
         $requestedClockIn = $this->fmt($requestedClockIn);
         $requestedClockOut = $this->fmt($requestedClockOut);
@@ -212,6 +215,7 @@ class AttendanceController extends Controller
             'isPending' => $isPending,
             'isApproved' => $isApproved,
             'isLocked' => $isLocked,
+            'viewReadOnly' => $viewReadOnly,
             'id' => $id,
             'correction' => $correction,
             'requestedClockIn' => $requestedClockIn,

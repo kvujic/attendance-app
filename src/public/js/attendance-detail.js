@@ -1,7 +1,3 @@
-if (typeof window.breakIndex === 'undefined') {
-    window.breakIndex = 1;
-}
-
 function isValidTimeFormat(time) {
     return /^\d{2}:\d{2}$/.test(time);
 }
@@ -40,29 +36,21 @@ function addNewBreakRow(index) {
         StartEl.addEventListener('input', handler);
         endEl.addEventListener('input', handler);
     }
-
-    // update index
-    window.breakIndex += 1;
 }
 
 function maybeAddRow(index) {
-
     if (window.isPending) return;
 
     const start = document.querySelector(`input[name="breaks[${index}][requested_break_start]"]`)?.value;
     const end = document.querySelector(`input[name="breaks[${index}][requested_break_end]"]`)?.value;
-
     const nextExists = document.getElementsByName(`breaks[${index + 1}][requested_break_start]`).length > 0;
 
     if (isValidTimeFormat(start) && isValidTimeFormat(end) && !nextExists) {
         addNewBreakRow(index + 1);
-        window.breakIndex = index + 2;
     }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded triggered');
-
     if (window.isPending) return;
 
     const tbody = document.getElementById('break-rows') || document.querySelector('.attendance-detail__table tbody');
@@ -77,6 +65,5 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if (start && end && !nextExists) {
         addNewBreakRow(lastIndex + 1);
-        window.breakIndex = lastIndex + 2;
     }
 });

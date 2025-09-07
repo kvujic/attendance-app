@@ -23,11 +23,6 @@ class CorrectionController extends Controller
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
 
-            if (Carbon::parse($attendance->date)->isFuture()) {
-                return back()->withErrors([
-                    'date' => '未来日の勤怠は修正できません',
-                ])->withInput();
-            }
             $targetDate = Carbon::parse($attendance->date)->toDateString();
         } else {
             $targetDate = Carbon::parse($request->date)->toDateString();
@@ -77,23 +72,22 @@ class CorrectionController extends Controller
         $userId = auth()->id();
         $tab = $request->input('tab', 'pending');
 
+        $base = AttendanceCorrection::with(['user', 'attendance'])
+            ->where('user_id', $userId)
+            ->orderByDesc('created_at');
+
         if ($tab === 'approved') {
-            $corrections = AttendanceCorrection::with(['user', 'attendance'])
-                ->where('user_id', $userId)
-                ->where('status', 'approved')
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $corrections = (clone $base)->where('status', 'approved')->get();
+            $readOnly = true;
         } else {
-            $corrections = AttendanceCorrection::with(['user', 'attendance'])
-                ->where('user_id', $userId)
-                ->where('status', 'pending')
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $corrections = (clone $base)->where('status', 'pending')->get();
+            $readOnly = false;
         }
 
         return view('user.user_correction_list', [
             'corrections' => $corrections,
             'tab' => $tab,
+            'readOnly' => $readOnly,
         ]);
     }
 

@@ -8,7 +8,6 @@ use Carbon\Carbon;
 
 class AttendanceRequest extends FormRequest
 {
-    //filtering
     protected function prepareForValidation()
     {
         $filtered = collect($this->input('breaks', []))
@@ -20,19 +19,12 @@ class AttendanceRequest extends FormRequest
             'breaks' => $filtered
         ]);
     }
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         $rules = [
@@ -95,9 +87,20 @@ class AttendanceRequest extends FormRequest
 
     public function withValidator(Validator $validator): void {
         $validator->after(function (Validator $v) {
-            $date = $this->input('date');
-            if ($date && Carbon::parse($date)->isFuture()) {
+            $targetDate = Carbon::parse($this->input('date'))->toDateString();
+            $attendanceDate = Carbon::parse($targetDate)->startOfDay();
+
+            if ($attendanceDate->isFuture()) {
                 $v->errors()->add('date', '未来日の勤怠は修正できません');
+            }
+
+            if ($attendanceDate->isSameDay(now())) {
+                $combine = fn($hm) => $hm ? Carbon::createFromFormat('Y-m-d H:i', "{$targetDate} {$hm}") : null;
+                $in = $combine($this->input('requested_clock_in'));
+                $out = $combine($this->input('requested_clock_out'));
+
+                if ($in && $in->gt(now())) $v->errors()->add('requested_clock_in', '当日の未来時刻は指定できません');
+                if ($out && $out->gt(now())) $v->errors()->add('requested_clock_out', '当日の未来時刻は指定できません');
             }
         });
     }

@@ -32,7 +32,6 @@ class UserLoginController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
-        // if not verified
         if (!$user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
         }

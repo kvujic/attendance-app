@@ -53,7 +53,7 @@ class Attendance extends Model
               ->orWhereHas('breakTimes')
               ->orWhereHas('attendanceCorrections', function ($cq) {
                 $cq->where('status', 'approved');
-              });
+            });
         });
     }
 }
