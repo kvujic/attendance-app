@@ -50,11 +50,11 @@
                 <tr class="attendance-detail__table-row break-row">
                     <th class="detail-label">{{ $loop->index === 0 ? '休憩' : '休憩' . ($loop->index + 1) }}</th>
                     <td class="detail-data">
-                        <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_start]" value="{{ old('breaks.'.$loop->index.'.requested_break_start', data_get($break, 'requested_break_start', '')) }}" {{ $isLocked ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
+                        <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_start]" value="{{ data_get($break, 'requested_break_start', '') }}" {{ $isLocked ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
 
                         <span class="tilde">〜</span>
 
-                        <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_end]" value="{{ old('breaks.'.$loop->index.'.requested_break_end', data_get($break, 'requested_break_end', '')) }}" {{ $isLocked ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
+                        <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_end]" value="{{ data_get($break, 'requested_break_end', '') }}" {{ $isLocked ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
 
                         @if ($errors->has('breaks.'.$loop->index.'.requested_break_end'))
                         <div class="attendance-detail__error">
@@ -71,7 +71,7 @@
                 <tr class="attendance-detail__table-row textarea">
                     <th class="detail-label">備考</th>
                     <td class="detail-data">
-                        <textarea name="request_note" id="" class="detail-data__text" cols="15" rows="3" {{ $isLocked ? 'readonly' : ''}}>{{ old('request_note',$correction->request_note ?? $attendance->note) }}</textarea>
+                        <textarea name="request_note" id="" class="detail-data__text" cols="15" rows="3" {{ $isLocked ? 'readonly' : ''}}>{{ $requestNote }}</textarea>
                         @error('request_note')
                         <div class="attendance-detail__error">{{ $message }}</div>
                         @enderror
@@ -81,7 +81,7 @@
         </table>
 
         <div class="attendance-detail__action">
-            @if (request('from') === 'approved' && optional($correction)->status === 'approved')
+            @if ($viewReadOnly)
             <button class="action-button badge-approved" type="button" disabled>承認済み</button>
             @elseif ($isPending)
             <p class="pending-message">*承認待ちのため修正はできません。</p>

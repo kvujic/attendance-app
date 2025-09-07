@@ -169,32 +169,76 @@ class AttendanceController extends Controller
             $date = \Carbon\Carbon::parse($attendance->date)->toDateString();
         }
 
-        $correction = AttendanceCorrection::where('attendance_id', $attendance->id)
+        $pendingCorrection = AttendanceCorrection::where('attendance_id', $attendance->id)
+            ->where('status', 'pending')
             ->with(['correctionBreaks' => fn($q) => $q->orderBy('requested_break_start')])
-            ->where(function ($q) {
-                $q->where('status', 'pending')->orWhere('status', 'approved');
-            })
-            ->orderByRaw("CASE status WHEN 'pending' THEN 1 WHEN 'approved' THEN 2 ELSE 3 END")
             ->orderByDesc('created_at')
             ->first();
 
-        $isPending = $correction?->status === 'pending';
-        $isApproved = $correction?->status === 'approved';
-        $viewReadOnly = $request->query('from') === 'approved' && $isApproved;
+        $latestApproved = AttendanceCorrection::where('attendance_id', $attendance->id)
+            ->where('status', 'approved')
+            ->with(['correctionBreaks' => fn($q) => $q->orderBy('requested_break_start')])
+            ->orderByDesc('created_at')
+            ->first();
+
+        $fromApproved = $request->query('from') === 'approved';
+        $approvedViewId = $request->query('correction');
+
+        $viewCorrection = null;
+        if ($fromApproved && !empty($approvedViewId)) {
+            $viewCorrection = AttendanceCorrection::with(['correctionBreaks' => fn($q) => $q->orderBy('requested_break_start')])
+                ->where('id', $approvedViewId)
+                ->where('attendance_id', $attendance->id)
+                ->where('user_id', $user->id)
+                ->where('status', 'approved')
+                ->firstOrFail();
+        }
+
+        $viewReadOnly = (bool) $viewCorrection;
+
+        if ($viewCorrection) {
+            $formSource = $viewCorrection;
+        } elseif ($pendingCorrection) {
+            $formSource = $pendingCorrection;
+        } elseif ($latestApproved) {
+            $formSource = $latestApproved;
+        } else {
+            $formSource = null;
+        }
+
+        $isPending = (bool) $pendingCorrection;
+        $isApproved = (bool) $latestApproved;
         $isLocked = $isPending || $viewReadOnly;
 
-        $sourceForTimes = $isPending ? $correction : null;
+        if ($viewReadOnly) {
+            $requestedClockIn = $formSource->requested_clock_in ?? $attendance->clock_in;
+            $requestedClockOut = $formSource->requested_clock_out ?? $attendance->clock_out;
 
-        $requestedClockIn = old('requested_clock_in') ?? ($sourceForTimes->requested_clock_in ?? $attendance->clock_in);
-        $requestedClockOut = old('requested_clock_out') ?? ($sourceForTimes->requested_clock_out ?? $attendance->clock_out);
+            if ($formSource && $formSource->correctionBreaks?->isNotEmpty()) {
+                $breaksSource = $formSource->correctionBreaks;
+            } else {
+                $breaksSource = $attendance->breakTimes;
+            }
 
-        $oldBreaks = old('breaks');
-        if (!empty($oldBreaks)) {
-            $breaksSource = $oldBreaks;
-        } elseif ($isPending && $correction && $correction->correctionBreaks?->isNotEmpty()) {
-            $breaksSource = $correction->correctionBreaks;
+            $requestNote = $formSource->request_note ?? $attendance->note;
+
         } else {
-            $breaksSource = $attendance->breakTimes;
+            $requestedClockIn = old('requested_clock_in')
+                ?? ($formSource->requested_clock_in ?? $attendance->clock_in);
+
+            $requestedClockOut = old('requested_clock_out')
+                ?? ($formSource->requested_clock_out ?? $attendance->clock_out);
+
+            $oldBreaks = old('breaks');
+            if (!empty($oldBreaks)) {
+                $breaksSource = $oldBreaks;
+            } elseif ($formSource) {
+                $breaksSource = $formSource->correctionBreaks ?? collect();
+            } else {
+                $breaksSource = $attendance->breakTimes;
+            }
+
+            $requestNote = old('request_note', $formSource->request_note ?? $attendance->note);
         }
 
         $breaks = $this->mapBreaksToRequested($breaksSource);
@@ -217,9 +261,10 @@ class AttendanceController extends Controller
             'isLocked' => $isLocked,
             'viewReadOnly' => $viewReadOnly,
             'id' => $id,
-            'correction' => $correction,
             'requestedClockIn' => $requestedClockIn,
             'requestedClockOut' => $requestedClockOut,
+            'requestNote' => $requestNote,
+            'formSource' => $formSource,
         ]);
     }
 

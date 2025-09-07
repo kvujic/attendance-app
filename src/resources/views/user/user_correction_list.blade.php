@@ -46,7 +46,7 @@
                 <td class="correction-list__data data-detail">
                     @if ($correction->attendance_id)
                         @if ($tab === 'approved')
-                        <a href="{{ route('attendance.show', ['id' =>$correction->attendance_id, 'from' => 'approved']) }}" class="detail-link">詳細</a>
+                        <a href="{{ route('attendance.show', ['id' =>$correction->attendance_id, 'from' => 'approved', 'correction' => $correction->id]) }}" class="detail-link">詳細</a>
                         @else
                         <a href="{{ route('attendance.show', ['id' => $correction->attendance_id]) }}" class="detail-link">詳細</a>
                         @endif
