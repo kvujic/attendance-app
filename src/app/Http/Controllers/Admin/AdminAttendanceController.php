@@ -78,8 +78,8 @@ class AdminAttendanceController extends Controller
             $oldBreaks = old('breaks');
             if (!empty($oldBreaks)) {
                 $breaksSource = $oldBreaks;
-            } elseif ($correction && ($correction->correctionBreaks?->isNotEmpty())) {
-                $breaksSource = $correction->correctionBreaks;
+            } elseif ($correction) {
+                $breaksSource = $correction->correctionBreaks ?? collect();
             } else {
                 $breaksSource = $attendance->breakTimes;
             }
@@ -124,8 +124,8 @@ class AdminAttendanceController extends Controller
         $oldBreaks = old('breaks');
         if (!empty($oldBreaks)) {
             $breaksSource = $oldBreaks;
-        } elseif ($correction && ($correction->correctionBreaks?->isNotEmpty())) {
-            $breaksSource = $correction->correctionBreaks;
+        } elseif ($correction) {
+            $breaksSource = $correction->correctionBreaks ?? collect();
         } else {
             $breaksSource = $attendance->breakTimes;
         }

@@ -146,14 +146,13 @@ php artisan test --filter=テストファイル名
 
 ## サンプルユーザー
 
-一般ユーザーログイン URL：http://localhost/login/  
 管理者ユーザーログイン URL:http://localhost/admin/login/  
-
-> 認証済みユーザーです
 
 - 管理者ユーザー  
   Email: admin@example.com  
   Password: password  
+
+一般ユーザーログイン URL：http://localhost/login/  
 
 - 山田 太郎  
   Email: taro@example.com  

@@ -5,7 +5,7 @@ function isValidTimeFormat(time) {
 function addNewBreakRow(index) {
 
     //not add the new row when it's pending
-    if (window.isPending) return;
+    if (window.isLocked) return;
 
     //not add if same name of input exists
     if (document.getElementsByName(`breaks[${index}][requested_break_start]`).length > 0) {
@@ -29,7 +29,7 @@ function addNewBreakRow(index) {
     const lastBreakRow = breakRows[breakRows.length - 1];
     tbody.insertBefore(tr, lastBreakRow ? lastBreakRow.nextSibling : null);
 
-    if (!window.isPending) {
+    if (!window.isLocked) {
         const StartEl = tr.querySelector(`input[name="breaks[${index}][requested_break_start]"]`);
         const endEl = tr.querySelector(`input[name="breaks[${index}][requested_break_end]"]`);
         const handler = () => maybeAddRow(index);
@@ -39,7 +39,7 @@ function addNewBreakRow(index) {
 }
 
 function maybeAddRow(index) {
-    if (window.isPending) return;
+    if (window.isLocked) return;
 
     const start = document.querySelector(`input[name="breaks[${index}][requested_break_start]"]`)?.value;
     const end = document.querySelector(`input[name="breaks[${index}][requested_break_end]"]`)?.value;
@@ -51,7 +51,7 @@ function maybeAddRow(index) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    if (window.isPending) return;
+    if (window.isLocked) return;
 
     const tbody = document.getElementById('break-rows') || document.querySelector('.attendance-detail__table tbody');
     if (!tbody) return;
