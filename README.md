@@ -1,4 +1,4 @@
-# attendance-app
+# COACHTECH 勤怠管理アプリ
 
 ## 概要
 
@@ -8,8 +8,8 @@
 
 **Docker ビルド**
 
-1. `git clone git@github.com:kvujic/flea-market-app.git`
-2. `cd flea-market-app`
+1. `git clone git@github.com:kvujic/attendance-app.git`
+2. `cd attendance-app`
 3. DockerDesktop アプリを立ち上げる
 4. `docker-compose up -d --build`
 
@@ -62,7 +62,7 @@ php artisan key:generate
 7. マイグレーションの実行
 
 ```bash
-php artisan migrate
+php artisan migrate:fresh
 ```
 
 8. シーディングの実行

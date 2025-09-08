@@ -20,8 +20,8 @@ class AttendanceCorrection extends Model
     ];
 
     protected $casts = [
-        'requested_start_time' => 'datetime',
-        'requested_end_time' => 'datetime',
+        'requested_clock_in' => 'datetime',
+        'requested_clock_out' => 'datetime',
     ];
 
 

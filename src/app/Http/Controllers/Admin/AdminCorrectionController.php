@@ -142,7 +142,7 @@ class AdminCorrectionController extends Controller
 
         $publicNote = $request->input('request_note');
 
-        \DB::transaction(function () use ($request, $attendance, $clockIn, $clockOut, $publicNote, $targetDate) {
+        DB::transaction(function () use ($request, $attendance, $clockIn, $clockOut, $publicNote, $targetDate) {
 
             $correction = AttendanceCorrection::create([
                 'attendance_id' => $attendance->id,

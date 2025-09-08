@@ -133,10 +133,11 @@ class UserAttendanceCorrectionTest extends TestCase
             ],
         ];
 
-        $response = $this->from('attendance.show', ['id' => $this->attendance->id])
+        $response = $this->from(route('attendance.show', ['id' => $this->attendance->id]))
             ->post(route('attendance.update', ['id' => $this->attendance->id]), $payload);
 
         $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('attendance_corrections', [
             'attendance_id' => $this->attendance->id,

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
+use App\Models\Attendance;
 use Carbon\Carbon;
 
 class AttendanceRequest extends FormRequest
@@ -85,22 +86,59 @@ class AttendanceRequest extends FormRequest
         ];
     }
 
-    public function withValidator(Validator $validator): void {
+    public function withValidator(Validator $validator): void
+    {
         $validator->after(function (Validator $v) {
-            $targetDate = Carbon::parse($this->input('date'))->toDateString();
-            $attendanceDate = Carbon::parse($targetDate)->startOfDay();
 
-            if ($attendanceDate->isFuture()) {
-                $v->errors()->add('date', '未来日の勤怠は修正できません');
+            $routeId = $this->route('id');
+            $targetDate = null;
+
+            if ($routeId !== 'new') {
+                $att = Attendance::find($routeId);
+                if ($att && $att->date) {
+                    $targetDate = Carbon::parse($att->date)->toDateString();
+                }
+            } else {
+                $d = $this->input('date');
+                if ($d) {
+                    $targetDate = Carbon::parse($d)->toDateString();
+                }
             }
 
-            if ($attendanceDate->isSameDay(now())) {
-                $combine = fn($hm) => $hm ? Carbon::createFromFormat('Y-m-d H:i', "{$targetDate} {$hm}") : null;
-                $in = $combine($this->input('requested_clock_in'));
-                $out = $combine($this->input('requested_clock_out'));
+            if (!$targetDate) {
+                return;
+            }
 
-                if ($in && $in->gt(now())) $v->errors()->add('requested_clock_in', '当日の未来時刻は指定できません');
-                if ($out && $out->gt(now())) $v->errors()->add('requested_clock_out', '当日の未来時刻は指定できません');
+            $day = Carbon::parse($targetDate)->startOfDay();
+
+            if ($day->isFuture()) {
+                $v->errors()->add('date', '未来日の勤怠は修正できません');
+                return;
+            }
+
+            if ($day->isSameDay(now())) {
+                $now = now();
+                $mk = fn($hm) => $hm ? Carbon::createFromFormat('Y-m-d H:i', "{$targetDate} {$hm}") : null;
+
+                $in  = $mk($this->input('requested_clock_in'));
+                $out = $mk($this->input('requested_clock_out'));
+
+                $futureError = false;
+
+                if ($in && $in->gt($now))  $futureError = true;
+                if ($out && $out->gt($now)) $futureError = true;
+
+                foreach ($this->input('breaks', []) as $i => $b) {
+                    $s = !empty($b['requested_break_start']) ? $mk($b['requested_break_start']) : null;
+                    $e = !empty($b['requested_break_end'])   ? $mk($b['requested_break_end'])   : null;
+                    if (($s && $s->gt($now)) || ($e && $e->gt($now))) {
+                        $futureError = true;
+                    }
+                }
+
+                if ($futureError) {
+                    $v->errors()->add('requested_clock_in', '未来時刻は指定できません');
+                }
             }
         });
     }
