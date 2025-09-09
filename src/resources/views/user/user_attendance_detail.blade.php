@@ -54,15 +54,17 @@
                             <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_start]" value="{{ data_get($break, 'requested_break_start', '') }}" {{ $isLocked ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
                             <span class="tilde">〜</span>
                             <input type="text" class="data__input-time" name="breaks[{{ $loop->index }}][requested_break_end]" value="{{ data_get($break, 'requested_break_end', '') }}" {{ $isLocked ? 'readonly' : '' }} oninput="maybeAddRow({{ $loop->index }})">
-                            @if ($errors->has('breaks.'.$loop->index.'.requested_break_end'))
+                            @if ($errors->has("breaks.{$loop->index}"))
                             <div class="attendance-detail__error">
-                                {{ $errors->first('breaks.'.$loop->index.'.requested_break_end') }}
-                            </div>
-                            @elseif ($errors->has('breaks.'.$loop->index.'.requested_break_start'))
-                            <div class="attendance-detail__error">
-                                {{ $errors->first('breaks.'.$loop->index.'.requested_break_start' )}}
+                                {{ $errors->first("breaks.{$loop->index}") }}
                             </div>
                             @endif
+                            @foreach ($errors->get('breaks.'.$loop->index.'.requested_break_start') as $msg)
+                            <div class="attendance-detail__error">{{ $msg }}</div>
+                            @endforeach
+                            @foreach ($errors->get('breaks.'.$loop->index.'.requested_break_end') as $msg)
+                            <div class="attendance-detail__error">{{ $msg }}</div>
+                            @endforeach
                         </td>
                     </tr>
                     @endforeach

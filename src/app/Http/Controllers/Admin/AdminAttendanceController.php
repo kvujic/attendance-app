@@ -55,7 +55,6 @@ class AdminAttendanceController extends Controller
                 ->with(['breakTimes' => fn($q) => $q->orderBy('break_start')])
                 ->first();
 
-            //pass empty object (dummy) data if not exist
             if (!$attendance) {
                 $attendance = new Attendance([
                     'user_id' => $user->id,

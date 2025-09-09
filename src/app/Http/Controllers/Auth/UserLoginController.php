@@ -29,6 +29,10 @@ class UserLoginController extends Controller
             return back()->withErrors(['email' => 'ログイン情報が登録されていません'])->withInput();
         }
 
+        if ((int)$user->role !== 2) {
+            return back()->withErrors(['email' => 'ログイン情報が登録されていません'])->withInput();
+        }
+
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
