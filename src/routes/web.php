@@ -11,23 +11,6 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\User\AttendanceController;
 use App\Http\Controllers\User\CorrectionController;
 use App\Http\Middleware\AdminCorrectionListMiddleware;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "web" middleware group. Make something great!
-|
-*/
-
-
-
 
 // user: before login
 Route::middleware('guest')->group(function() {

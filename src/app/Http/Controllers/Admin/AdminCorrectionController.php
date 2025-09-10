@@ -111,9 +111,11 @@ class AdminCorrectionController extends Controller
     }
 
 
-    public function updateAttendance($id, AttendanceRequest $request)
+    public function updateAttendance(AttendanceRequest $request, string $id)
     {
         abort_unless(Auth::guard('admin')->check(), 403);
+
+        $data = $request->validated();
 
         $targetUserId = (int)$request->input('user_id');
         $targetUser = User::findOrFail($targetUserId);
