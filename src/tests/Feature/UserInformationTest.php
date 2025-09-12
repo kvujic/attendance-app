@@ -25,19 +25,19 @@ class UserInformationTest extends TestCase
         $this->admin = User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@example.com',
-            'role' => 1,
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $this->staffA = User::factory()->create([
             'name' => 'StaffA',
             'email' => 'staffa@example.com',
-            'role' => 2,
+            'role' => User::ROLE_STAFF,
         ]);
 
         $this->staffB = User::factory()->create([
             'name' => 'StaffB',
             'email' => 'staffb@example.com',
-            'role' => 2,
+            'role' => User::ROLE_STAFF,
         ]);
 
         Attendance::factory()->create([

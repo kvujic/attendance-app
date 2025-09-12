@@ -38,7 +38,7 @@ class AdminLoginController extends Controller
             Auth::guard('admin')->logout();
             $request->session()->invalidate();
             $request->session()->regenerateToken();
-            return redirect()->route('admin.login')->withErrors(['email' => '管理者権限がありません']);
+            return redirect()->route('admin.login');
             }
         return back()->withErrors(['email' => 'ログイン情報が登録されていません']);
     }

@@ -13,6 +13,9 @@ class EmailVerificationTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const MAILHOG_URL = 'http://localhost:8025';
+    private const VERIFY_EXPIRE_MIN = 60;
+
     public function test_confirmation_email_will_be_sent_after_register()
     {
         Notification::fake();
@@ -38,7 +41,7 @@ class EmailVerificationTest extends TestCase
         $response = $this->actingAs($user)->get(route('verification.notice'));
 
         $response->assertStatus(200);
-        $response->assertSee('http://localhost:8025');
+        $response->assertSee(self::MAILHOG_URL);
         $response->assertSee('認証はこちら');
     }
 
@@ -51,7 +54,7 @@ class EmailVerificationTest extends TestCase
 
         $verificationUrl = URL::temporarySignedRoute(
             'verification.verify',
-            now()->addMinutes(60),
+            now()->addMinutes(self::VERIFY_EXPIRE_MIN),
             [
                 'id' => $user->id,
                 'hash' => sha1($user->email),

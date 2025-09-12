@@ -4,7 +4,6 @@ function isValidTimeFormat(time) {
 
 function addNewBreakRow(index) {
 
-    //not add the new row when it's pending
     if (window.isLocked) return;
 
     //not add if same name of input exists

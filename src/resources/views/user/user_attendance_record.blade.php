@@ -21,7 +21,6 @@
             @endswitch
         </p>
     </div>
-
     @php
     use Carbon\Carbon;
     $now = Carbon::now();
@@ -31,7 +30,6 @@
         <p class="date" id="current-date">{{ $now->format("Y年n月j日") }}({{ $weekdays[$now->dayOfWeek] }})</p>
         <p class="time" id="current-time">{{ $now->format("H:i") }}</p>
     </div>
-
     <div class="punch-buttons">
         <form action="{{ route('attendance.create') }}" method="POST">
             @csrf

@@ -4,11 +4,13 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
-use App\Models\Attendance;
 use Carbon\Carbon;
 
 class AttendanceRequest extends FormRequest
 {
+    private const REGEX_HHMM = '/^\d{2}:\d{2}$/';
+    private const MINUTES_PER_HOUR = 60;
+
     protected function prepareForValidation()
     {
         $filtered = collect($this->input('breaks', []))
@@ -84,7 +86,7 @@ class AttendanceRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
-        $hm = fn($v) => is_string($v) && preg_match('/^\d{2}:\d{2}$/', $v) === 1;
+        $hm = fn($v) => is_string($v) && preg_match(self::REGEX_HHMM, $v) === 1;
 
         $validator->sometimes(
             'requested_clock_out',
@@ -144,72 +146,66 @@ class AttendanceRequest extends FormRequest
                     $errors->add($key, $m);
                 }
             };
-            $forgetAllErrors = function () use ($errors) {
+            $forgetAll = function () use ($errors) {
                 foreach (array_keys($errors->toArray()) as $k) $errors->forget($k);
             };
 
-            $isHi = fn($s) => is_string($s) && preg_match('/^\d{2}:\d{2}$/', $s) === 1;
+            $isHi = fn($s) => is_string($s) && preg_match(self::REGEX_HHMM, $s) === 1;
+            $h2m  = function (string $hhmm): int {
+                [$h, $m] = array_map('intval', explode(':', $hhmm));
+                return $h * self::MINUTES_PER_HOUR + $m;
+            };
 
             $routeId = $this->route('id');
             $targetDate = null;
 
             if ($routeId !== 'new') {
-                $att = Attendance::find($routeId);
-                if ($att && $att->date) {
-                    $targetDate = Carbon::parse($att->date)->toDateString();
-                }
+                $attendance = \App\Models\Attendance::find($routeId);
+                if ($attendance && $attendance->date) $targetDate = \Carbon\Carbon::parse($attendance->date)->toDateString();
             } else {
                 $d = $this->input('date');
-                if ($d) {
-                    $targetDate = Carbon::parse($d)->toDateString();
-                }
+                if ($d) $targetDate = \Carbon\Carbon::parse($d)->toDateString();
             }
 
             if ($targetDate) {
-                $day = Carbon::parse($targetDate)->startOfDay();
-
-                $hasOtherErrors = !empty($errors->toArray());
+                $day = \Carbon\Carbon::parse($targetDate)->startOfDay();
+                $hasOther = !empty($errors->toArray());
 
                 if ($day->isFuture()) {
-                    if (!$hasOtherErrors) {
-                        foreach (array_keys($errors->toArray()) as $k) $errors->forget($k);
+                    if (!$hasOther) {
+                        $forgetAll();
                         $errors->add('date', '未来日の勤怠は修正できません');
                         return;
                     }
                 } elseif ($day->isSameDay(now())) {
-                    $mk = fn($hm) => $isHi($hm) ? Carbon::createFromFormat('Y-m-d H:i', "{$targetDate} {$hm}") : null;
-
+                    $mk = fn($hm) => $isHi($hm) ? \Carbon\Carbon::createFromFormat('Y-m-d H:i', "{$targetDate} {$hm}") : null;
                     $now = now();
                     $in  = $mk($this->input('requested_clock_in'));
                     $out = $mk($this->input('requested_clock_out'));
 
-                    $hasFutureTime = false;
-                    if ($in && $in->gt($now))  $hasFutureTime = true;
-                    if ($out && $out->gt($now)) $hasFutureTime = true;
+                    $future = false;
+                    if ($in && $in->gt($now))  $future = true;
+                    if ($out && $out->gt($now)) $future = true;
 
                     foreach ($this->input('breaks', []) as $b) {
                         $s = !empty($b['requested_break_start']) ? $mk($b['requested_break_start']) : null;
                         $e = !empty($b['requested_break_end'])   ? $mk($b['requested_break_end'])   : null;
                         if (($s && $s->gt($now)) || ($e && $e->gt($now))) {
-                            $hasFutureTime = true;
+                            $future = true;
                             break;
                         }
                     }
 
-                    if ($hasFutureTime) {
-                        if (!$hasOtherErrors) {
-                            foreach (array_keys($errors->toArray()) as $k) $errors->forget($k);
-                            $errors->add('requested_clock_in', '未来時刻は指定できません');
-                            return;
-                        }
+                    if ($future && !$hasOther) {
+                        $forgetAll();
+                        $errors->add('requested_clock_in', '未来時刻は指定できません');
+                        return;
                     }
                 }
             }
 
-            if ($errors->has('requested_clock_out')) {
-                if (!isset($failed['requested_clock_out']['Required'])) {
-                    $replaceOrAdd('requested_clock_out', '出勤時間もしくは退勤時間が不適切な値です');
-                }
+            if (isset($failed['requested_clock_out']['After'])) {
+                $replaceOrAdd('requested_clock_out', '出勤時間もしくは退勤時間が不適切な値です');
             }
 
             foreach ($this->input('breaks', []) as $i => $row) {
@@ -229,6 +225,126 @@ class AttendanceRequest extends FormRequest
                 $eKey = "breaks.$i.requested_break_end";
                 if (isset($failed[$eKey]['After'])) {
                     $replaceOrAdd($eKey, '休憩時間が不適切な値です');
+                }
+            }
+
+            $clockIn  = trim((string)($this->input('requested_clock_in')  ?? ''));
+            $clockOut = trim((string)($this->input('requested_clock_out') ?? ''));
+            $clockInOk  = $isHi($clockIn);
+            $clockOutOk = $isHi($clockOut);
+            $clockInMin  = $clockInOk  ? $h2m($clockIn)  : null;
+            $clockOutMin = $clockOutOk ? $h2m($clockOut) : null;
+
+            foreach ($this->input('breaks', []) as $i => $row) {
+                $sKey = "breaks.$i.requested_break_start";
+                $sRaw = trim((string)($row['requested_break_start'] ?? ''));
+                if ($isHi($sRaw) && $clockInOk && $clockOutOk) {
+                    $sMin = $h2m($sRaw);
+                    if (!($sMin >= $clockInMin && $sMin < $clockOutMin)) {
+                        $addOnce($sKey, '休憩時間が不適切な値です');
+                    }
+                }
+            }
+
+            foreach ($this->input('breaks', []) as $i => $row) {
+                $rowKey = "breaks.$i";
+                $sKey   = "breaks.$i.requested_break_start";
+                $eKey   = "breaks.$i.requested_break_end";
+
+                $sRaw = trim((string)($row['requested_break_start'] ?? ''));
+                $eRaw = trim((string)($row['requested_break_end'] ?? ''));
+
+                if ($isHi($sRaw) && $isHi($eRaw)) {
+                    $sMin = $h2m($sRaw);
+                    $eMin = $h2m($eRaw);
+
+                    if ($sMin === $eMin) {
+                        if ($errors->has($sKey)) {
+                            $kept = array_values(array_filter($errors->get($sKey), fn($m) => $m !== '休憩時間が不適切な値です'));
+                            $errors->forget($sKey);
+                            foreach ($kept as $m) $errors->add($sKey, $m);
+                        }
+                        if ($errors->has($eKey)) {
+                            $kept = array_values(array_filter($errors->get($eKey), fn($m) => $m !== '休憩時間が不適切な値です'));
+                            $errors->forget($eKey);
+                            foreach ($kept as $m) $errors->add($eKey, $m);
+                        }
+
+                        $rowMsgs = $errors->get($rowKey) ?? [];
+                        if (!in_array('休憩時間が不適切な値です', $rowMsgs, true)) {
+                            $errors->add($rowKey, '休憩時間が不適切な値です');
+                        }
+                    }
+                }
+
+                if ($errors->has($rowKey) && in_array('休憩時間が不適切な値です', $errors->get($rowKey), true)) {
+                    if ($errors->has($sKey)) {
+                        $kept = array_values(array_filter($errors->get($sKey), fn($m) => $m !== '休憩時間が不適切な値です'));
+                        $errors->forget($sKey);
+                        foreach ($kept as $m) $errors->add($sKey, $m);
+                    }
+                    if ($errors->has($eKey)) {
+                        $kept = array_values(array_filter($errors->get($eKey), fn($m) => $m !== '休憩時間が不適切な値です'));
+                        $errors->forget($eKey);
+                        foreach ($kept as $m) $errors->add($eKey, $m);
+                    }
+                }
+            }
+
+            foreach ($this->input('breaks', []) as $i => $row) {
+                $rowKey = "breaks.$i";
+                $sKey   = "breaks.$i.requested_break_start";
+                $eKey   = "breaks.$i.requested_break_end";
+
+                $sRaw = trim((string)($row['requested_break_start'] ?? ''));
+                $eRaw = trim((string)($row['requested_break_end'] ?? ''));
+                $rangeMsg = '休憩時間が不適切な値です';
+
+                $isHi = fn($s) => is_string($s) && preg_match(self::REGEX_HHMM, $s) === 1;
+                $h2m  = function (string $hhmm): int {
+                    [$h, $m] = array_map('intval', explode(':', $hhmm));
+                    return $h * self::MINUTES_PER_HOUR + $m;
+                };
+
+                $inStr = trim((string)($this->input('requested_clock_in') ?? ''));
+
+                if ($isHi($sRaw) && $isHi($eRaw) && $isHi($inStr)) {
+                    $sMin = $h2m($sRaw);
+                    $eMin = $h2m($eRaw);
+                    $inMin = $h2m($inStr);
+
+                    $startAfterEnd = $sMin > $eMin;
+                    $bothBeforeIn  = $sMin < $inMin && $eMin < $inMin;
+
+                    if ($startAfterEnd && $bothBeforeIn) {
+                        if ($errors->has($sKey)) {
+                            $kept = array_values(array_filter($errors->get($sKey), fn($m) => $m !== $rangeMsg));
+                            $errors->forget($sKey);
+                            foreach ($kept as $m) $errors->add($sKey, $m);
+                        }
+                        if ($errors->has($eKey)) {
+                            $kept = array_values(array_filter($errors->get($eKey), fn($m) => $m !== $rangeMsg));
+                            $errors->forget($eKey);
+                            foreach ($kept as $m) $errors->add($eKey, $m);
+                        }
+                        $rowMsgs = $errors->get($rowKey) ?? [];
+                        if (!in_array($rangeMsg, $rowMsgs, true)) {
+                            $errors->add($rowKey, $rangeMsg);
+                        }
+                    }
+                }
+
+                if ($errors->has($rowKey) && in_array($rangeMsg, $errors->get($rowKey), true)) {
+                    if ($errors->has($sKey)) {
+                        $kept = array_values(array_filter($errors->get($sKey), fn($m) => $m !== $rangeMsg));
+                        $errors->forget($sKey);
+                        foreach ($kept as $m) $errors->add($sKey, $m);
+                    }
+                    if ($errors->has($eKey)) {
+                        $kept = array_values(array_filter($errors->get($eKey), fn($m) => $m !== $rangeMsg));
+                        $errors->forget($eKey);
+                        foreach ($kept as $m) $errors->add($eKey, $m);
+                    }
                 }
             }
 

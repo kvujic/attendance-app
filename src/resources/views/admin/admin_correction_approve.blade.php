@@ -12,7 +12,6 @@
 
 <div class="attendance-detail__container">
     <h1 class="attendance-detail__title">勤怠詳細</h1>
-
     <table class="attendance-detail__table">
         <tbody id="break-rows">
             <tr class="attendance-detail__table-row">

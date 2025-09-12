@@ -2,13 +2,11 @@
     <div class="header__logo">
         <a href="{{ route('admin.attendance.list') }}" class="logo-link"><img src="{{ asset('images/logo.png') }}" class="logo-item" alt="logo"></a>
     </div>
-
     @if(Auth::check())
     @php
     $currentPath = request()->path();
     $isAuthPage = in_array($currentPath, ['admin/login']);
     @endphp
-
     @if(!$isAuthPage)
     <nav class="header__nav">
         <ul class="nav-menu">

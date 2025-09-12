@@ -13,6 +13,8 @@ class UserAttendanceCorrectionTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const BASE_DATE = '2025-08-01';
+
     protected User $user;
     protected Attendance $attendance;
 
@@ -23,9 +25,9 @@ class UserAttendanceCorrectionTest extends TestCase
         $this->user = User::factory()->create();
         $this->attendance = Attendance::factory()->create([
             'user_id' => $this->user->id,
-            'date' => '2025-08-01',
-            'clock_in' => '2025-08-01 09:00:00',
-            'clock_out' => '2025-08-01 18:00:00',
+            'date' => self::BASE_DATE,
+            'clock_in' => $this->dt('09:00'),
+            'clock_out' => $this->dt('18:00'),
         ]);
     }
 
@@ -142,8 +144,8 @@ class UserAttendanceCorrectionTest extends TestCase
         $this->assertDatabaseHas('attendance_corrections', [
             'attendance_id' => $this->attendance->id,
             'user_id' => $this->user->id,
-            'requested_clock_in' => '2025-08-01 09:00:00',
-            'requested_clock_out' => '2025-08-01 19:00:00',
+            'requested_clock_in' => $this->dt('09:00'),
+            'requested_clock_out' => $this->dt('19:00'),
             'request_note' => '残業',
             'status' => 'pending',
         ]);
@@ -151,8 +153,8 @@ class UserAttendanceCorrectionTest extends TestCase
         $correction = AttendanceCorrection::latest('id')->first();
         $this->assertDatabaseHas('correction_breaks', [
             'attendance_correction_id' => $correction->id,
-            'requested_break_start' => '2025-08-01 12:00:00',
-            'requested_break_end' => '2025-08-01 13:00:00',
+            'requested_break_start' => $this->dt('12:00'),
+            'requested_break_end' => $this->dt('13:00'),
         ]);
 
         $admin = User::create([
@@ -160,7 +162,7 @@ class UserAttendanceCorrectionTest extends TestCase
             'email' => 'adminuser@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
-            'role' => 1,
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $this->actingAs($admin, 'admin');
@@ -216,7 +218,7 @@ class UserAttendanceCorrectionTest extends TestCase
             'email' => 'adminuser@example.com',
             'password' => 'password123',
             'password_confirmation' => 'password123',
-            'role' => 1,
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $this->actingAs($admin, 'admin');
@@ -253,7 +255,12 @@ class UserAttendanceCorrectionTest extends TestCase
         $response->assertOk();
 
         $date = \Carbon\Carbon::parse($this->attendance->date);
-        $response->assertSee('value="' . $date->format('Y年') . '"', false);
-        $response->assertSee('value="' . $date->format('n月j日') . '"', false);
+        $response->assertSee($date->format('Y年'));
+        $response->assertSee($date->format('n月j日'));
+    }
+
+    private function dt(string $hm): string
+    {
+        return self::BASE_DATE . ' ' . $hm . ':00';
     }
 }

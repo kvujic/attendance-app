@@ -28,14 +28,14 @@ class AdminAttendanceDetailTest extends TestCase
             'name' => 'admin user',
             'email' => 'admin@example.com',
             'password' => 'password',
-            'role' => 1,
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $this->staff = User::factory()->create([
             'name' => 'test user',
             'email' => 'testuser@example.com',
             'password' => 'password123',
-            'role' => 2,
+            'role' => User::ROLE_STAFF,
         ]);
 
         $this->attendance = Attendance::factory()->create([

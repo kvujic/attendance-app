@@ -13,6 +13,8 @@ class UserAttendanceDetailTest extends TestCase
 {
     use RefreshDatabase;
 
+    private const BASE_DATE = '2025-07-31';
+
     private User $user;
     private Attendance $attendance;
 
@@ -27,9 +29,9 @@ class UserAttendanceDetailTest extends TestCase
 
         $this->attendance = Attendance::factory()->create([
             'user_id' => $this->user->id,
-            'date' => Carbon::today()->setDate(2025, 7, 31)->toDateString(),
-            'clock_in' => Carbon::today()->setTime(9, 0)->toDateTimeString(),
-            'clock_out' => carbon::today()->setTime(18, 0)->toDateTimeString(),
+            'date' => self::BASE_DATE,
+            'clock_in' => $this->dt('09:00'),
+            'clock_out' => $this->dt('18:00'),
         ]);
 
         $base = Carbon::parse($this->attendance->date);
@@ -93,5 +95,10 @@ class UserAttendanceDetailTest extends TestCase
         $response->assertSee('12:45');
         $response->assertSee('15:00');
         $response->assertSee('15:15');
+    }
+
+    private function dt(string $hm): string
+    {
+        return self::BASE_DATE . ' ' . $hm . ':00';
     }
 }

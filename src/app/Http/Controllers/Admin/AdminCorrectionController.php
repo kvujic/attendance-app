@@ -115,7 +115,7 @@ class AdminCorrectionController extends Controller
     {
         abort_unless(Auth::guard('admin')->check(), 403);
 
-        $data = $request->validated();
+        //$data = $request->validated();
 
         $targetUserId = (int)$request->input('user_id');
         $targetUser = User::findOrFail($targetUserId);

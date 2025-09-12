@@ -12,7 +12,6 @@
 
 <div class="staff-list__container">
     <h1 class="staff-list__title">スタッフ一覧</h1>
-
     <table class="staff-list__table">
         <thead class="staff-list__table-header">
             <tr class="staff-list__table-row">

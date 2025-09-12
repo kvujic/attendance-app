@@ -6,13 +6,11 @@
         <a href="{{ route('attendance.list') }}" class="logo-link"><img src="{{ asset('images/logo.png') }}" class="logo-item" alt="logo"></a>
         @endif
     </div>
-
     @if(Auth::check())
     @php
     $currentPath = request()->path();
     $isAuthPage = in_array($currentPath, ['register', 'login', 'email/verify']);
     @endphp
-
     @if(!$isAuthPage)
     <nav class="header__nav">
         <ul class="nav-menu">

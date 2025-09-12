@@ -36,9 +36,9 @@
                     <tr class="attendance-detail__table-row">
                         <th class="detail-label">出勤・退勤</th>
                         <td class="detail-data">
-                            <input type="text" class="data__input-time" name="requested_clock_in" value="{{ $requestedClockIn }}" {{ $isPending ? 'readonly' : '' }}>
+                            <input type="text" class="data__input-time" name="requested_clock_in" value="{{ old('requested_clock_in', $requestedClockIn) }}" {{ $isPending ? 'readonly' : '' }}>
                             <span class="tilde">〜</span>
-                            <input type="text" class="data__input-time" name="requested_clock_out" value="{{ $requestedClockOut }}" {{ $isPending ? 'readonly' : ''}}>
+                            <input type="text" class="data__input-time" name="requested_clock_out" value="{{ old('requested_clock_out', $requestedClockOut) }}" {{ $isPending ? 'readonly' : ''}}>
                             @error('requested_clock_in')
                             <div class="attendance-detail__error">{{ $message }}</div>
                             @enderror
@@ -47,7 +47,6 @@
                             @enderror
                         </td>
                     </tr>
-
                     @foreach ($breaks as $break)
                     <tr class="attendance-detail__table-row break-row">
                         <th class="detail-label">{{ $loop->index === 0 ? '休憩' : '休憩' . ($loop->index + 1) }}</th>
@@ -81,7 +80,6 @@
                 </tbody>
             </table>
         </fieldset>
-
         <div class="attendance-detail__action">
             @if (session('status') === 'updated')
             <p class="pending-message">修正しました</p>

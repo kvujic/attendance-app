@@ -79,6 +79,10 @@ body {
     padding: 0 50px;
 }
 
+.time-display {
+    border: none;
+}
+
 .data-name {
     padding-left: 10px;
 }

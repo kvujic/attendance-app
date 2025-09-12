@@ -211,16 +211,11 @@ class AttendanceController extends Controller
         $isLocked = $isPending || $viewReadOnly;
 
         if ($viewReadOnly) {
-            $requestedClockIn = $formSource->requested_clock_in ?? $attendance->clock_in;
-            $requestedClockOut = $formSource->requested_clock_out ?? $attendance->clock_out;
+            $requestedClockIn = $formSource->requested_clock_in ?? ''; //$attendance->clock_in;
+            $requestedClockOut = $formSource->requested_clock_out ?? ''; //$attendance->clock_out;
 
-            if ($formSource && $formSource->correctionBreaks?->isNotEmpty()) {
-                $breaksSource = $formSource->correctionBreaks;
-            } else {
-                $breaksSource = $attendance->breakTimes;
-            }
-
-            $requestNote = $formSource->request_note ?? $attendance->note;
+            $breaksSource = $formSource->correctionBreaks ?? collect();
+            $requestNote = $formSource->request_note ?? '';
 
         } else {
             $requestedClockIn = old('requested_clock_in')
@@ -243,8 +238,14 @@ class AttendanceController extends Controller
 
         $breaks = $this->mapBreaksToRequested($breaksSource);
 
-        if (empty($breaks) && !$isLocked) {
-            $breaks[] = ['requested_break_start' => '', 'requested_break_end' => ''];
+        if ($isPending || $viewReadOnly) {
+            $breaks = array_values(array_filter($breaks, function ($b) {
+                return ($b['requested_break_start'] ?? '') !== '' && ($b['requested_break_end'] ?? '') !== '';
+            }));
+        } else {
+            if (empty($breaks)) {
+                $breaks[] = ['requested_break_start' => '', 'requested_break_end' => ''];
+            }
         }
 
         $requestedClockIn = $this->fmt($requestedClockIn);
@@ -270,31 +271,49 @@ class AttendanceController extends Controller
 
     private function mapBreaksToRequested($rows): array
     {
-        if (empty($rows)) return [];
+        if ($rows instanceof \Illuminate\Support\Collection) {
+            if ($rows->isEmpty()) return [];
+            $iter = $rows;
+        } elseif (is_array($rows)) {
+            if (count($rows) === 0) return [];
+            $iter = $rows;
+        } elseif ($rows === null) {
+            return [];
+        } else {
+            $iter = [$rows];
+        }
+
         $out = [];
 
-        foreach ($rows as $row) {
+        foreach ($iter as $row) {
             if (is_array($row)) {
-                $out[] = [
-                    'requested_break_start' => $row['requested_break_start'] ?? ($row['start'] ?? ''),
-                    'requested_break_end' => $row['requested_break_end'] ?? ($row['end'] ?? ''),
-                ];
+                $start = $row['requested_break_start'] ?? ($row['start'] ?? '');
+                $end   = $row['requested_break_end']   ?? ($row['end']   ?? '');
             } elseif ($row instanceof CorrectionBreak) {
-                $out[] = [
-                    'requested_break_start' => $this->fmt($row->requested_break_start),
-                    'requested_break_end' => $this->fmt($row->requested_break_end),
-                ];
+                $start = $this->fmt($row->requested_break_start);
+                $end   = $this->fmt($row->requested_break_end);
             } else {
-                $out[] = [
-                    'requested_break_start' => $this->fmt($row->break_start),
-                    'requested_break_end' => $this->fmt($row->break_end),
-                ];
+                $start = $this->fmt($row->break_start);
+                $end   = $this->fmt($row->break_end);
             }
+
+            if ($start === '' && $end === '') {
+                continue;
+            }
+
+            $out[] = [
+                'requested_break_start' => $start,
+                'requested_break_end'   => $end,
+            ];
         }
-        if (empty($out)) {
-            $out[] = ['requested_break_start' => '', 'requested_break_end' => ''];
-        }
+
         return $out;
+
+        if ($isPending || $isApproved || $viewReadOnly) {
+            $breaks = array_values(array_filter($breaks, function ($b) {
+                return ($b['requested_break_start'] ?? '') !== '' && ($b['requested_break_end'] ?? '') !== '';
+            }));
+        }
     }
 
     private function fmt($v): string

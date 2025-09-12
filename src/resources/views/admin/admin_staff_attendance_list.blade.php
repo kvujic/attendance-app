@@ -12,17 +12,14 @@
 
 <div class="attendance-list__container">
     <h1 class="attendance-list__title">{{ $user->name }}さんの勤怠</h1>
-
     <div class="month-switcher">
         <a href="{{ route('admin.attendance.staff', ['id' => $user->id, 'month' => $prevMonthStr]) }}" class="nav-button">
             <img src="{{ asset('images/arrow_left.svg') }}" alt="←" class="button-arrow">前月
         </a>
-
         <div class="month-display" id="current-month">
             <img src="{{ asset('images/calendar.png') }}" alt="calendar" class="calendar-icon">
             {{ $currentMonth->format('Y/m') }}
         </div>
-
         @if ($nextMonthStr)
         <a href="{{ route('admin.attendance.staff', ['id' => $user->id, 'month' => $nextMonthStr]) }} " class="nav-button">
             翌月<img src="{{ asset('images/arrow_right.svg') }}" alt="→" class="button-arrow">
@@ -33,7 +30,6 @@
         </button>
         @endif
     </div>
-
     <table class="attendance-list__table">
         <thead class="attendance-list__table-header">
             <tr class="attendance-list__table-row">
@@ -76,6 +72,5 @@
     <div class="csv-button__wrapper">
         <a class="csv-button" href="{{ route('admin.attendance.csv', [ 'id' => $user->id, 'month' => $currentMonth->format('Y-m'),]) }}">CSV出力</a>
     </div>
-
 </div>
 @endsection

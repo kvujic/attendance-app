@@ -16,6 +16,10 @@ class BreakTest extends TestCase
     private User $user;
     private Attendance $attendance;
 
+    private const MIN_10 = 10;
+    private const MIN_15 = 15;
+    private const MIN_20 = 20;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -52,7 +56,7 @@ class BreakTest extends TestCase
 
         $response = $this->post(route('attendance.store'), ['action' => 'break_start'])->assertRedirect();
 
-        Carbon::setTestNow(now()->addMinutes(15));
+        Carbon::setTestNow(now()->addMinutes(self::MIN_15));
         $response = $this->post(route('attendance.store'), ['action' => 'break_end'])->assertRedirect();
 
         $response = $this->get(route('attendance.create'))->assertOk();
@@ -72,7 +76,7 @@ class BreakTest extends TestCase
         $response->assertOk();
         $response->assertSee('休憩戻');
 
-        Carbon::setTestNow(now()->addMinute(20));
+        Carbon::setTestNow(now()->addMinute(self::MIN_20));
         $response = $this->followingRedirects()->post(route('attendance.store'), ['action' => 'break_end']);
 
         $response->assertSee('勤務中');
@@ -83,7 +87,7 @@ class BreakTest extends TestCase
         $this->actingAs($this->user);
 
         $response = $this->post(route('attendance.store'), ['action' => 'break_start'])->assertRedirect();
-        Carbon::setTestNow(now()->addMinute(10));
+        Carbon::setTestNow(now()->addMinute(self::MIN_10));
         $response = $this->post(route('attendance.store'), ['action' => 'break_end'])->assertRedirect();
 
         $response = $this->get(route('attendance.create'))->assertOk()->assertSee('休憩入');

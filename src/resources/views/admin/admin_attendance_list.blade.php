@@ -12,7 +12,6 @@
 
 <div class="attendance-list__container attendance-list__admin">
     <h1 class="attendance-list__title">{{ $currentDate->format('Y年n月j日') }}の勤怠</h1>
-
     <div class="month-switcher">
         <a href="{{ route('admin.attendance.list', ['date' => $prevDateStr]) }}" class="nav-button">
             <img src="{{ asset('images/arrow_left.svg') }}" alt="←" class="button-arrow">前日
@@ -31,7 +30,6 @@
         </button>
         @endif
     </div>
-
     <table class="attendance-list__table">
         <thead class="attendance-list__table-header">
             <tr class="attendance-list__table-row">
@@ -67,5 +65,4 @@
         </tbody>
     </table>
 </div>
-
 @endsection

@@ -13,7 +13,6 @@
 
 <div class="correction-list__container">
     <h1 class="correction-list__title">申請一覧</h1>
-
     <div class="border">
         <ul class="tab-nav">
             <li class="tab-menu">
@@ -24,7 +23,6 @@
             </li>
         </ul>
     </div>
-
     <table class="correction-list__table">
         <thead>
             <tr class="correction-list__table-row header-row">

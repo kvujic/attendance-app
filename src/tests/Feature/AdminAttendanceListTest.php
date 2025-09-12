@@ -16,6 +16,22 @@ class AdminAttendanceListTest extends TestCase
     private User $userA;
     private User $userB;
 
+    private function ymd(?Carbon $d = null): string {
+        return ($d ?? Carbon::today())->format('Y/m/d');
+    }
+
+    private function jpYnj(?Carbon $d = null): string {
+        return ($d ?? Carbon::today())->format('Y年n月j日');
+    }
+
+    private function hm(int $h, int $m): Carbon {
+        return Carbon::today()->setTime($h, $m, 0);
+    }
+
+    private function ymdDate(string $ymd): Carbon {
+        return Carbon::parse($ymd);
+    }
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -44,30 +60,30 @@ class AdminAttendanceListTest extends TestCase
 
         Attendance::factory()->create([
             'user_id' => $this->userA->id,
-            'date' => '2025-08-15',
-            'clock_in' => '2025-08-15 09:00:00',
-            'clock_out' => '2025-08-15 18:00:00',
+            'date' => Carbon::today()->toDateString(),
+            'clock_in' => $this->hm(9, 0),
+            'clock_out' => $this->hm(18, 0),
         ]);
 
         Attendance::factory()->create([
             'user_id' => $this->userB->id,
-            'date' => '2025-08-15',
-            'clock_in' => '2025-08-15 10:00:00',
-            'clock_out' => '2025-08-15 19:00:00',
+            'date' => Carbon::today()->toDateString(),
+            'clock_in' => $this->hm(10, 0),
+            'clock_out' => $this->hm(19, 0),
         ]);
 
         Attendance::factory()->create([
             'user_id' => $this->userA->id,
-            'date' => '2025-08-14',
-            'clock_in' => '2025-08-14 09:30:00',
-            'clock_out' => '2025-08-14 18:30:00',
+            'date' => Carbon::yesterday()->toDateString(),
+            'clock_in' => Carbon::yesterday()->setTime(9, 30, 0),
+            'clock_out' => Carbon::yesterday()->setTime(18, 30, 0),
         ]);
 
         Attendance::factory()->create([
             'user_id' => $this->userB->id,
-            'date' => '2025-08-16',
-            'clock_in' => '2025-08-16 8:45:00',
-            'clock_out' => '2025-08-16 17:15:00',
+            'date' => Carbon::tomorrow()->toDateString(),
+            'clock_in' => Carbon::tomorrow()->setTime(8, 45, 0),
+            'clock_out' => Carbon::tomorrow()->setTime(17, 15, 0),
         ]);
     }
 
@@ -78,7 +94,7 @@ class AdminAttendanceListTest extends TestCase
         $response = $this->get(route('admin.attendance.list'));
         $response->assertOk();
 
-        $response->assertSee('2025/08/15');
+        $response->assertSee($this->ymd());
 
         $response->assertSee('userA');
         $response->assertSee('09:00');
@@ -96,18 +112,19 @@ class AdminAttendanceListTest extends TestCase
         $response = $this->get(route('admin.attendance.list'));
         $response->assertOk();
 
-        $response->assertSee('2025/08/15');
-        $response->assertSee('2025年8月15日');
+        $response->assertSee($this->ymd());
+        $response->assertSee($this->jpYnj());
     }
 
     public function test_previous_day_attendance_information_are_displayed_when_previous_day_button_is_clicked()
     {
         $this->actingAs($this->admin, 'admin');
 
-        $response = $this->get(route('admin.attendance.list', ['date' => '2025-08-14']));
+        $date = Carbon::yesterday();
+        $response = $this->get(route('admin.attendance.list', ['date' => $date->toDateString()]));
         $response->assertOk();
 
-        $response->assertSee('2025/08/14');
+        $response->assertSee($this->ymd($date));
         $response->assertSee('userA');
         $response->assertSee('09:30');
         $response->assertSee('18:30');
@@ -117,10 +134,11 @@ class AdminAttendanceListTest extends TestCase
     {
         $this->actingAs($this->admin, 'admin');
 
-        $response = $this->get(route('admin.attendance.list', ['date' => '2025-08-16']));
+        $date = Carbon::tomorrow();
+        $response = $this->get(route('admin.attendance.list', ['date' => $date->toDateString()]));
         $response->assertOk();
 
-        $response->assertSee('2025/08/16');
+        $response->assertSee($this->ymd($date));
         $response->assertSee('userB');
         $response->assertSee('08:45');
         $response->assertSee('17:15');

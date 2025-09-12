@@ -30,21 +30,21 @@ class AdminAttendanceCorrectionTest extends TestCase
             'name' => 'admin user',
             'email' => 'admin@example.com',
             'password' => 'password',
-            'role' => 1,
+            'role' => User::ROLE_ADMIN,
         ]);
 
         $this->userA = User::factory()->create([
             'name' => 'UserA',
             'email' => 'usera@example.com',
             'password' => 'password123',
-            'role' => 2,
+            'role' => User::ROLE_STAFF,
         ]);
 
         $this->userB = User::factory()->create([
             'name' => 'UserB',
             'email' => 'userb@example.com',
             'password' => 'password456',
-            'role' => 2,
+            'role' => User::ROLE_STAFF,
         ]);
 
         $this->attendanceA = Attendance::factory()->create([
@@ -87,11 +87,11 @@ class AdminAttendanceCorrectionTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('UserA');
-        $response->assertSee('2025/08/01');
+        $response->assertSee(Carbon::today()->format('Y/m/d'));
         $response->assertSee('correction for A');
 
         $response->assertSee('UserB');
-        $response->assertSee('2025/08/01');
+        $response->assertSee(Carbon::today()->format('Y/m/d'));
         $response->assertSee('correction for B');
     }
 
