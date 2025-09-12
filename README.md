@@ -62,7 +62,7 @@ php artisan key:generate
 7. マイグレーションの実行
 
 ```bash
-php artisan migrate:fresh
+php artisan migrate
 ```
 
 8. シーディングの実行
@@ -129,10 +129,15 @@ CREATE DATABASE test_db;
 SHOW DATABASES;
 ```
 
-5. テストの実行
-
+5. キャッシュをクリア
 ```bash
 docker-compose exec php bash
+php artisan optimize:clear
+```
+
+6. テストの実行
+
+```bash
 php artisan test
 ```
 
