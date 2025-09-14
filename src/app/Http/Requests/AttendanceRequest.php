@@ -209,19 +209,6 @@ class AttendanceRequest extends FormRequest
             }
 
             foreach ($this->input('breaks', []) as $i => $row) {
-                $sKey = "breaks.$i.requested_break_start";
-                $eKey = "breaks.$i.requested_break_end";
-                $sRaw = trim((string)($row['requested_break_start'] ?? ''));
-                $eRaw = trim((string)($row['requested_break_end'] ?? ''));
-
-                if (isset($failed[$sKey]['RequiredWith'])) $replaceOrAdd($sKey, '休憩時間が不適切な値です');
-                if (isset($failed[$eKey]['RequiredWith'])) $replaceOrAdd($eKey, '休憩時間が不適切な値です');
-
-                if ($eRaw !== '' && $sRaw === '') $addOnce($sKey, '休憩時間が不適切な値です');
-                if ($sRaw !== '' && $eRaw === '') $addOnce($eKey, '休憩時間が不適切な値です');
-            }
-
-            foreach ($this->input('breaks', []) as $i => $row) {
                 $eKey = "breaks.$i.requested_break_end";
                 if (isset($failed[$eKey]['After'])) {
                     $replaceOrAdd($eKey, '休憩時間が不適切な値です');
