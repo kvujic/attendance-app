@@ -15,7 +15,7 @@
         <p class="current-status">
             @switch($attendanceStatus)
             @case('off_duty') 勤務外 @break
-            @case('working') 勤務中 @break
+            @case('working') 出勤中 @break
             @case('on_break') 休憩中 @break
             @case('after_work') 退勤済 @break
             @endswitch
